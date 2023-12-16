@@ -1,79 +1,86 @@
 <script setup>
-import queryString from 'query-string'
 import { ref, onMounted } from 'vue'
-import { ff } from '@/utils/ff.js'
+import useffStore from '@/store/fanfou.js'
+import useMastStore from '@/store/mastodon.js'
+import { ff } from '@/utils/fanfou.js'
+import { apis } from '@/utils/mastodon.js'
 
-const isffLoged = ref(false)
-const ffUserInfo = ref({})
+
+const inputValue = ref(null)
+const instanceURL = ref('nofan.xyz')
+const ffStore = useffStore()
+const mastoStore = useMastStore()
 
 onMounted(async () => {
-  const { location } = window
-  if (location && location.search) {
-    // this.setState({ loged: true })
-    isffLoged.value = true
-    const parsed = queryString.parse(location.search)
-    const { oauth_token: oauthToken } = parsed
-    const oauthTokenSecret = localStorage.getItem('requestTokenSecret')
-    if (oauthTokenSecret) {
-      const result = await ff.getAccessToken({ oauthToken, oauthTokenSecret })
-      localStorage.setItem('oauthToken', result.oauthToken)
-      localStorage.setItem('oauthTokenSecret', result.oauthTokenSecret)
-      localStorage.removeItem('requestTokenSecret')
-      window.location.replace(
-        window.location.origin + window.location.pathname,
-      )
-    }
-  } else {
-    const oauthToken = localStorage.getItem('oauthToken')
-    const oauthTokenSecret = localStorage.getItem('oauthTokenSecret')
-
-    if (oauthToken && oauthTokenSecret) {
-      isffLoged.value = true
-      ff.oauthToken = oauthToken
-      ff.oauthTokenSecret = oauthTokenSecret
-      const user = await ff.get('/users/show')
-      console.log('user', user)
-      ffUserInfo.value = user
-    }
-  }
+  ffStore.getUserInfo()
+  mastoStore.getUserInfo(instanceURL.value)
 })
 
-
-
-async function goffAuth () {
-  const result = await ff.getRequestToken()
-  localStorage.setItem('requestTokenSecret', result.oauthTokenSecret)
-  window.location.replace(
-    `https://fanfou.com/oauth/authorize?oauth_token=${result.oauthToken}&oauth_callback=${window.location.href}`,
-  )
+async function getffAuth () {
+  ffStore.getToken()
 }
 
-async function goMastodonAuth () {
+// console.log('client', client)
+console.log('apis', apis)
+async function handleToSend () {
+  // 并行化请求
+  const [ffResponse, mastoResponse] = await Promise.all([
+    ff.post('/statuses/update', { status: inputValue.value }),
+    apis.masto.v1.statuses.create({
+      status: inputValue.value,
+      visibility: "public",
+    }),
+  ])
 
+  // 根据需要处理响应
+  // ffResponse 和 mastoResponse 包含相应请求的结果
+  console.log('ffResponse', ffResponse)
+  console.log('mastoResponse', mastoResponse)
+
+  inputValue.value = ''
+  console.log('发送成功')
 }
 
+
+async function getMastodonAuth () {
+  mastoStore.getToken(instanceURL.value)
+}
+
+const logoutff = () => {
+  ffStore.$reset()
+  location.href = location.href
+}
+
+const logoutNofan = () => {
+  mastoStore.$reset()
+  location.href = location.href
+}
 
 </script>
 
 <template>
   <h1>欢迎使用 NO2FAN 服务</h1>
-
   <div class="card">
-    <p>
-      <button @click="goMastodonAuth">登录到 NOFAN</button>
-    </p>
-    <p v-if="user">
-      <button @click="goffAuth">登录到饭否</button>
+    <p v-if="mastoStore.userInfo.id">
+      NOFAN 已登录：<img className="nes-avatar is-small" alt="avatar" :src="mastoStore.userInfo.avatar"
+        style="width: 48px; height: 48px;" />
+      {{ mastoStore.userInfo.displayName }}。
+      <button @click="logoutNofan">登出 NOFAN</button>
     </p>
     <p v-else>
-      饭否已登录：<img className="nes-avatar is-small" alt="avatar" :src="ffUserInfo.profile_image_url" />
-      {{ ffUserInfo.name }}。
+      <button @click="getMastodonAuth">登录到 NOFAN</button>
     </p>
+    <p v-if="ffStore.userInfo.id">
+      饭否已登录：<img className="nes-avatar is-small" alt="avatar" :src="ffStore.userInfo.profile_image_url" />
+      {{ ffStore.userInfo.name }}。
+      <button @click="logoutff">登出饭否</button>
+    </p>
+    <p v-else>
+      <button @click="getffAuth">登录到饭否</button>
+    </p>
+    <textarea v-model="inputValue"></textarea>
+    <button @click="handleToSend">发送</button>
   </div>
 </template>
 
-<style scoped>
-.read-the-docs {
-  color: #888;
-}
-</style>
+<style scoped></style>
