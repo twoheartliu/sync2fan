@@ -46,34 +46,36 @@ const useffStore = defineStore('mastodon', {
 
       if (parsed.code) {
         // Clear the code from the URL
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname || '/'
-        )
-        ;(async () => {
-          //  setUIState('loading')
-          const { access_token } = await getAccessToken({
-            instanceURL,
-            client_id: this.client_id,
-            client_secret: this.client_secret,
-            code: parsed.code,
-          })
-          this.access_token = access_token
+        // window.history.replaceState(
+        //   {},
+        //   document.title,
+        //   window.location.pathname || '/'
+        // )
+        //  setUIState('loading')
+        const { access_token } = await getAccessToken({
+          instanceURL,
+          client_id: this.client_id,
+          client_secret: this.client_secret,
+          code: parsed.code,
+        })
+        this.access_token = access_token
 
-          const client = await initClient({
-            instance: instanceURL,
-            accessToken: this.access_token,
-          })
-          const userInfo = await initAccount(
-            client,
-            instanceURL,
-            this.access_token,
-            this.vapidKey
-          )
-          this.userInfo = userInfo
-          this.isLoged = true
-        })()
+        const client = await initClient({
+          instance: instanceURL,
+          accessToken: this.access_token,
+        })
+        const userInfo = await initAccount(
+          client,
+          instanceURL,
+          this.access_token,
+          this.vapidKey
+        )
+        this.userInfo = userInfo
+        this.isLoged = true
+
+        window.location.replace(
+          window.location.origin + window.location.pathname
+        )
       } else {
         await initClient({
           instance: instanceURL,
