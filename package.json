@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "1.6.2",
     "fanfou-sdk-browser": "0.8.0",
     "masto": "^6.5.1",
     "pinia": "^2.1.7",

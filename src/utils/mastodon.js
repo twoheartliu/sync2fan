@@ -1,5 +1,6 @@
 const { VITE_CLIENT_NAME: CLIENT_NAME, VITE_WEBSITE: WEBSITE } = import.meta.env
 import { createRestAPIClient } from 'masto'
+import axios from 'axios'
 
 const SCOPES = 'read write follow push'
 
@@ -10,19 +11,18 @@ export async function registerApplication({ instanceURL }) {
     scopes: SCOPES,
     website: WEBSITE,
   })
-  const registrationResponse = await fetch(
+  const registrationResponse = await axios.post(
     `https://${instanceURL}/api/v1/apps`,
+    registrationParams,
     {
-      method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: registrationParams.toString(),
     }
   )
-  const registrationJSON = await registrationResponse.json()
-  console.log({ registrationJSON })
-  return registrationJSON
+  // const registrationJSON = await registrationResponse.json()
+  // console.log({ registrationJSON })
+  return registrationResponse.data
 }
 
 export async function getAuthorizationURL({ instanceURL, client_id }) {
@@ -51,14 +51,18 @@ export async function getAccessToken({
     code,
     scope: SCOPES,
   })
-  const tokenResponse = await fetch(`https://${instanceURL}/oauth/token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: params.toString(),
-  })
-  const tokenJSON = await tokenResponse.json()
+
+  const tokenResponse = await axios.post(
+    `https://${instanceURL}/oauth/token`,
+    params,
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }
+  )
+
+  const tokenJSON = tokenResponse.data
   console.log({ tokenJSON })
   return tokenJSON
 }
