@@ -20,8 +20,6 @@ export async function registerApplication({ instanceURL }) {
       },
     }
   )
-  // const registrationJSON = await registrationResponse.json()
-  // console.log({ registrationJSON })
   return registrationResponse.data
 }
 
@@ -63,7 +61,6 @@ export async function getAccessToken({
   )
 
   const tokenJSON = tokenResponse.data
-  console.log({ tokenJSON })
   return tokenJSON
 }
 

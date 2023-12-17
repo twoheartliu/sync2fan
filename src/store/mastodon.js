@@ -70,11 +70,17 @@ const useffStore = defineStore('mastodon', {
           this.access_token,
           this.vapidKey
         )
+
         this.userInfo = userInfo
         this.isLoged = true
 
-        window.location.replace(
-          window.location.origin + window.location.pathname
+        // window.location.replace(
+        //   window.location.origin + window.location.pathname
+        // )
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname || '/'
         )
       } else {
         await initClient({
