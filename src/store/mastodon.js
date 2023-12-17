@@ -41,12 +41,10 @@ const useffStore = defineStore('mastodon', {
       }
     },
     async getUserInfo(instanceURL) {
-      const code = decodeURIComponent(
-        (window.location.search.match(/code=([^&]+)/) || [, ''])[1]
-      )
+      const { location } = window
+      const parsed = queryString.parse(location.search)
 
-      if (code) {
-        console.log({ code })
+      if (parsed.code) {
         // Clear the code from the URL
         window.history.replaceState(
           {},
@@ -59,7 +57,7 @@ const useffStore = defineStore('mastodon', {
             instanceURL,
             client_id: this.client_id,
             client_secret: this.client_secret,
-            code,
+            code: parsed.code,
           })
           this.access_token = access_token
 
