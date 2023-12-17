@@ -72,7 +72,7 @@ const logoutNofan = () => {
     <div class="logins">
       <p v-if="mastoStore.userInfo.id">
         <img class="avatar" alt="avatar" :src="mastoStore.userInfo.avatar" />
-        {{ mastoStore.userInfo.displayName }}。
+        {{ mastoStore.userInfo.displayName || mastoStore.userInfo.username }}。
         <button @click="logoutNofan">登出 NOFAN</button>
       </p>
       <p v-else>
