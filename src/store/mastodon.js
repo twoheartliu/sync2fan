@@ -75,16 +75,12 @@ const useffStore = defineStore('mastodon', {
           )
           this.userInfo = userInfo
           this.isLoged = true
-          this.client = client
-          // Object.assign(this.client, client)
-          // console.log('client', client)
         })()
       } else {
-        const client = await initClient({
+        await initClient({
           instance: instanceURL,
           accessToken: this.access_token,
         })
-        this.client = client
       }
     },
   },

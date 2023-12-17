@@ -1,7 +1,7 @@
 import Fanfou from 'fanfou-sdk-browser'
 
-export const consumerKey = '7008b986b162eb6ed2db8f50f26bc03e'
-export const consumerSecret = '0caea751b828756dca59a8ea7330384b'
+export const consumerKey = '1f60596e07661aac4d081f5509b46d8e'
+export const consumerSecret = '9657405ada614cfcd2b13a5ae7a086fe'
 
 export const ff = new Fanfou({
   consumerKey,

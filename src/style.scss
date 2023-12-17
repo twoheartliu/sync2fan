@@ -31,8 +31,12 @@ body {
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 2.4em;
   line-height: 1.1;
+}
+
+h3 {
+  font-size: 1.1em;
 }
 
 button {
@@ -54,17 +58,8 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-textarea {
-  border-radius: 8px;
-  border: 1px solid #1a1a1a;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  transition: border-color 0.25s;
-}
 .card {
-  padding: 2em;
+  padding: 1em;
 }
 
 #app {
@@ -84,5 +79,12 @@ textarea {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  h1 {
+    font-size: 2.7em;
+    margin-top: -2em;
   }
 }

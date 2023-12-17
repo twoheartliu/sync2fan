@@ -32,9 +32,8 @@ const useffStore = defineStore('ff', {
     async getUserInfo() {
       const { location } = window
       const parsed = queryString.parse(location.search)
-      console.log(parsed)
+
       if (parsed.oauth_token) {
-        console.log('oauth_token')
         this.isLoged = true
         const { oauth_token: oauthToken } = parsed
         if (this.oauthTokenSecret) {

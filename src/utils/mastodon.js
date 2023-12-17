@@ -81,7 +81,6 @@ export function initClient({ instance, accessToken }) {
   })
 
   apis.masto = masto
-  // Object.assign(apis, masto)
 
   const client = {
     masto,
@@ -95,6 +94,5 @@ export function initClient({ instance, accessToken }) {
 export async function initAccount(client, instance, accessToken, vapidKey) {
   const { masto } = client
   const mastoAccount = await masto.v1.accounts.verifyCredentials()
-
   return mastoAccount
 }
