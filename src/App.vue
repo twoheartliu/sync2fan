@@ -62,7 +62,7 @@ const logoutNofan = () => {
 </script>
 
 <template>
-  <h1>欢迎使用 NO2FAN </h1>
+  <h1>欢迎使用 sync2fan </h1>
   <div class="tips">
     <h3>0. 请点击登录 nofan 实例账号和饭否账号</h3>
     <h3>1. 消息将同步发送到长毛象 nofan 实例和饭否</h3>
