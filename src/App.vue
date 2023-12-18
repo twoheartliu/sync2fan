@@ -3,13 +3,19 @@ import { ref, onMounted } from 'vue'
 import useffStore from '@/store/fanfou'
 import useMastStore from '@/store/mastodon'
 import { ff } from '@/utils/fanfou'
+import { errorHandler } from '@/utils'
 import { apis } from '@/utils/mastodon'
+import loadingGif from '@/assets/ajax-indicator.gif'
+
 
 
 const inputValue = ref(null)
 const instanceURL = ref('nofan.xyz')
 const ffStore = useffStore()
 const mastoStore = useMastStore()
+const countdown = ref(140)
+const status = ref('')
+const isLoading = ref(false)
 
 onMounted(async () => {
   ffStore.getUserInfo()
@@ -19,31 +25,6 @@ onMounted(async () => {
 async function getffAuth () {
   ffStore.getToken()
 }
-
-async function sendMessage () {
-  if (!inputValue.value) return
-
-  if (ffStore.userInfo.id && mastoStore.userInfo.id) {
-    // 并行化请求
-    const [ffResponse, mastoResponse] = await Promise.all([
-      ff.post('/statuses/update', { status: inputValue.value }),
-      apis.masto.v1.statuses.create({
-        status: inputValue.value.trim(),
-        visibility: "public",
-      }),
-    ])
-
-    // 根据需要处理响应
-    // ffResponse 和 mastoResponse 包含相应请求的结果
-    console.log('ffResponse', ffResponse)
-    console.log('mastoResponse', mastoResponse)
-
-    inputValue.value = ''
-  } else {
-    alert('请确保同时登录了 nofan 和饭否！')
-  }
-}
-
 
 async function getMastodonAuth () {
   mastoStore.getToken(instanceURL.value)
@@ -59,6 +40,65 @@ const logoutNofan = () => {
   location.href = location.href
 }
 
+const updateChars = () => {
+  countdown.value = 140 - inputValue.value.length
+}
+
+async function sendMessage () {
+  if (!inputValue.value || isLoading.value) return
+
+  isLoading.value = true
+
+  try {
+    if (ffStore.userInfo.id && mastoStore.userInfo.id) {
+      await sendFanfouMessage()
+      await sendMastoMessage()
+      handleSuccess()
+    } else {
+      alert('请确保同时登录了 nofan 和饭否！')
+    }
+  } catch (error) {
+    handleError(error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function sendFanfouMessage () {
+  try {
+    await ff.post('/statuses/update', { status: inputValue.value })
+  } catch (error) {
+    const errorMessage = await errorHandler(error)
+    status.value = `饭否：${errorMessage}`
+    throw error
+  }
+}
+
+async function sendMastoMessage () {
+  try {
+    await apis.masto.v1.statuses.create({
+      status: inputValue.value.trim(),
+      visibility: 'public',
+    })
+  } catch (error) {
+    const errorMessage = await errorHandler(error)
+    status.value = `nofan: ${errorMessage}`
+    throw error
+  }
+}
+
+function handleSuccess () {
+  inputValue.value = ''
+  status.value = '发送成功'
+  setTimeout(() => {
+    status.value = ''
+  }, 2000)
+}
+
+function handleError (error) {
+  status.value = `发送消息时发生错误, 请联系 @twoheart: ${error.message}`
+}
+
 </script>
 
 <template>
@@ -66,7 +106,7 @@ const logoutNofan = () => {
   <div class="tips">
     <h3>0. 请点击登录 nofan 实例账号和饭否账号</h3>
     <h3>1. 消息将同步发送到长毛象 nofan 实例和饭否</h3>
-    <h3>2. 饭否是先审后发机制，在发送消息前请确保消息符合墙内规则</h3>
+    <h3>2. 饭否先审后发，人工审核后才会在 TL 显示</h3>
   </div>
   <div class="card">
     <div class="logins">
@@ -87,10 +127,23 @@ const logoutNofan = () => {
         <button @click="getffAuth">登录到饭否</button>
       </p>
     </div>
-    <div class="textarea">
-      <textarea v-model="inputValue" @keyup.enter.ctrl="sendMessage"></textarea>
+    <div class="loading">
+      <img :src="loadingGif" alt="loading" v-if="isLoading">
     </div>
-    <button @click="sendMessage">发送</button>
+    <div class="textarea">
+      <textarea v-model="inputValue" @keyup.enter.ctrl="sendMessage" @input="updateChars"></textarea>
+    </div>
+    <div class="actions">
+      <div class="left">
+        <span>{{ status }}</span>
+      </div>
+      <div class="right">
+        <span :class="countdown < 0 ? 'count red' : 'count'">
+          {{ countdown }}
+        </span>
+        <button @click="sendMessage">发送</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -103,6 +156,13 @@ h3 {
   padding: 0 1em;
 }
 
+
+.loading {
+  display: block;
+  height: 20px;
+  margin-bottom: 4px;
+  margin-right: 10px;
+}
 
 .card {
   // border: 1px solid red;
@@ -134,5 +194,24 @@ h3 {
       transition: border-color 0.25s;
     }
   }
+
+  .count {
+    margin-right: 10px;
+  }
+
+  .red {
+    color: red;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .left {
+      font-size: 12px;
+    }
+  }
+
 }
 </style>
