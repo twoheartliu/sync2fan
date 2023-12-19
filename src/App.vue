@@ -144,6 +144,11 @@ function handleError (error) {
         <button @click="sendMessage">发送</button>
       </div>
     </div>
+    <footer>
+      <a href="https://github.com/twoheartliu/sync2fan" target="_blank">Built</a> by <a href="https://nofan.xyz/@twoheart"
+        target="_blank">@twoheart</a>. <a href="https://github.com/twoheartliu/sync2fan/blob/main/PRIVACY.MD"
+        target="_blank">Privacy Policy</a>.
+    </footer>
   </div>
 </template>
 
@@ -211,6 +216,20 @@ h3 {
     .left {
       font-size: 12px;
     }
+  }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+
+  footer a {
+    text-decoration: none;
+    color: #1a1a1a;
   }
 
 }
