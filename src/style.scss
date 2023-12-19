@@ -35,10 +35,6 @@ h1 {
   line-height: 1.1;
 }
 
-h3 {
-  font-size: 1.1em;
-}
-
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -82,9 +78,19 @@ button:focus-visible {
   }
 }
 
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul li a {
+  text-decoration: none;
+}
+
 @media only screen and (max-width: 767px) {
   h1 {
     font-size: 2.7em;
-    margin-top: -2em;
+    margin-top: -3em;
   }
 }

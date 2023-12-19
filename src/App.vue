@@ -103,11 +103,11 @@ function handleError (error) {
 
 <template>
   <h1>欢迎使用 sync2fan </h1>
-  <div class="tips">
-    <h3>0. 请点击登录 nofan 实例账号和饭否账号</h3>
-    <h3>1. 消息将同步发送到长毛象 nofan 实例和饭否</h3>
-    <h3>2. 饭否先审后发，人工审核后才会在 TL 显示</h3>
-  </div>
+  <ul class="tips">
+    <li>0. 请点击登录 nofan 实例账号和饭否账号</li>
+    <li>1. 消息将同步发送到长毛象 nofan 实例和饭否</li>
+    <li>2. 饭否先审后发，人工审核后才会在 TL 显示</li>
+  </ul>
   <div class="card">
     <div class="logins">
       <p v-if="mastoStore.userInfo.id">
@@ -158,6 +158,11 @@ h3 {
 }
 
 .tips {
+  /* border: 1px solid red; */
+  text-align: left;
+  line-height: 1.6;
+  font-size: 14px;
+  font-weight: bold;
   padding: 0 1em;
 }
 
@@ -233,4 +238,7 @@ h3 {
   }
 
 }
+
+
+@media only screen and (max-width: 767px) {}
 </style>
