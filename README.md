@@ -28,7 +28,7 @@ npm i
 npm run dev
 ```
 
-## 🦄 Stack
+## Stack
 
 - [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling
 - [Vue](https://vuejs.org/) - The Progressive JavaScript Framework
@@ -36,6 +36,6 @@ npm run dev
 - [Masto.js](https://neet.github.io/masto.js) - Mastodon API client in TypeScript
 - [fanfou-sdk-browser](https://github.com/fanfoujs/fanfou-sdk-browser) - Fanfou SDK for browser
 
-## 📄 License
+## License
 
 [MIT](./LICENSE) &copy; 2023-PRESENT
