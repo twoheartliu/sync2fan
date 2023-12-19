@@ -1,10 +1,7 @@
-English |
-[简体中文](https://github.com/twoheartliu/sync2fan/blob/main/README.zh-cn.md)
-
 <h1 align="center"/>sync2fan <sup><em>alpha</em></sup></h1>
 
 <p align="center">
-A nimble web client for posting to both Fanfou and Mastodon(nofan)
+一个轻巧的将消息同时发布到 Mastodon（nofan) 实例与饭否的网页应用
 </p>
 
 <br/>
@@ -15,13 +12,13 @@ A nimble web client for posting to both Fanfou and Mastodon(nofan)
   </a>
 </p>
 
-## ⚠️ sync2fan is in Alpha
+## ⚠️ sync2fan 仍在早期版本
 
-It is already quite usable, but it isn't ready for wide adoption yet. Check out the [Open Issues](https://github.com/twoheartliu/sync2fan/issues) and jump in the action.
+sync2fan 目前可用性有限，欢迎使用 [Open Issues](https://github.com/twoheartliu/sync2fan/issues) 提交故障或提出建议。
 
-## Deployment
+## 部署
 
-Clone the repository and run on the root folder:
+Clone 本项目并在项目根路径:
 
 ```
 npm i
