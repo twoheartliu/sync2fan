@@ -135,11 +135,12 @@ function handleRemoveImg () {
 function handleKeyDown (event) {
   const isMacOS = navigator.userAgent.indexOf('Mac OS X') !== -1
 
-  if ((isMacOS && event.metaKey) || (!isMacOS && event.ctrlKey) && event.key === 'Enter') {
+  if ((isMacOS && event.metaKey || !isMacOS && event.ctrlKey) && event.key === 'Enter') {
     // 在这里执行你的操作
     sendMessage()
   }
 }
+
 </script>
 
 <template>
