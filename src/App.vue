@@ -1,4 +1,5 @@
 <script setup>
+import fs from "node:fs"
 import { ref, onMounted } from 'vue'
 import useffStore from '@/store/fanfou'
 import useMastStore from '@/store/mastodon'
@@ -16,6 +17,7 @@ const mastoStore = useMastStore()
 const countdown = ref(140)
 const status = ref('')
 const isLoading = ref(false)
+const fileList = ref(null)
 
 onMounted(async () => {
   ffStore.getUserInfo()
@@ -66,7 +68,11 @@ async function sendMessage () {
 
 async function sendFanfouMessage () {
   try {
-    await ff.post('/statuses/update', { status: inputValue.value })
+    if (fileList.value.length) {
+      await ff.upload('/photos/upload', { photo: new Blob(fileList.value), status: inputValue.value })
+    } else {
+      await ff.post('/statuses/update', { status: inputValue.value })
+    }
   } catch (error) {
     const errorMessage = await errorHandler(error)
     status.value = `饭否：${errorMessage}`
@@ -76,10 +82,25 @@ async function sendFanfouMessage () {
 
 async function sendMastoMessage () {
   try {
-    await apis.masto.v1.statuses.create({
-      status: inputValue.value.trim(),
-      visibility: 'public',
-    })
+    if (fileList.value.length) {
+      // Create media from a local file
+      const attachment1 = await apis.masto.v2.media.create({
+        file: new Blob(fileList.value),
+        description: "",
+      })
+
+      // Publish!
+      const status = await apis.masto.v1.statuses.create({
+        status: inputValue.value.trim(),
+        visibility: "public",
+        mediaIds: [attachment1.id],
+      })
+    } else {
+      await apis.masto.v1.statuses.create({
+        status: inputValue.value.trim(),
+        visibility: 'public',
+      })
+    }
   } catch (error) {
     const errorMessage = await errorHandler(error)
     status.value = `nofan: ${errorMessage}`
@@ -90,6 +111,7 @@ async function sendMastoMessage () {
 function handleSuccess () {
   inputValue.value = ''
   status.value = '发送成功'
+  fileList.value = null
   setTimeout(() => {
     status.value = ''
   }, 2000)
@@ -99,6 +121,17 @@ function handleError (error) {
   status.value = `发送消息时发生错误, 请联系 @twoheart: ${error.message}`
 }
 
+function handleFileUpload ($Event) {
+  console.log('event', $Event)
+  const { files } = $Event.target
+  if (files) {
+    fileList.value = files
+  }
+}
+
+function handleRemoveImg () {
+  fileList.value = null
+}
 </script>
 
 <template>
@@ -127,15 +160,33 @@ function handleError (error) {
         <button @click="getffAuth">登录到饭否</button>
       </p>
     </div>
-    <div class="loading">
+    <div class="status">
+      <div class="text">{{ status }}</div>
       <img :src="loadingGif" alt="loading" v-if="isLoading">
     </div>
     <div class="textarea">
       <textarea v-model="inputValue" @keyup.enter.ctrl="sendMessage" @input="updateChars"></textarea>
     </div>
+
     <div class="actions">
       <div class="left">
-        <span>{{ status }}</span>
+        <div class="act" style="display: block;">
+          <div id="upload-wrapper" class="web-upload-photo-file-name"><input type="hidden" name="photo_base64"
+              id="upload-base64">
+            <div class="upload-button-wrapper">
+              <div class="sl-file">
+                <div :class="fileList?.length ? 'pngfix sf-image-attached' : 'pngfix'" id="upload-button" title="上传图片"
+                  style="background-position: -40px 0px;"></div><input @change="handleFileUpload" title="上传图片，最大2MB"
+                  class="sl-input-file" type="file" name="picture" id="upload-file"
+                  accept="image/jpeg,image/png,image/gif">
+              </div>
+              <span class="ul-filename" id="upload-filename" style="display: inline;">{{ fileList && fileList[0].name
+              }}</span>
+              <span v-if="fileList?.length" @click="handleRemoveImg" class="upload-close-handle" title="取消上传"
+                id="ul_close" style="display: inline;">×</span>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="right">
         <span :class="countdown < 0 ? 'count red' : 'count'">
@@ -153,12 +204,13 @@ function handleError (error) {
 </template>
 
 <style scoped lang="scss">
+@import "@/assets/fanfou.scss";
+
 h3 {
   text-align: left;
 }
 
 .tips {
-  /* border: 1px solid red; */
   text-align: left;
   line-height: 1.6;
   font-size: 14px;
@@ -167,16 +219,25 @@ h3 {
 }
 
 
-.loading {
-  display: block;
-  height: 20px;
+.status {
+  display: flex;
   margin-bottom: 4px;
   margin-right: 10px;
+  max-width: 100%;
+  text-align: left;
+  min-height: 16px;
+
+  .text {
+    float: right;
+    display: block;
+    font-size: 12px;
+    width: 100%;
+  }
 }
 
 .card {
-  // border: 1px solid red;
   text-align: right;
+  max-width: 320px;
 
   .logins {
     font-size: 12px;
@@ -213,6 +274,7 @@ h3 {
     color: red;
   }
 
+
   .actions {
     display: flex;
     justify-content: space-between;
@@ -220,6 +282,31 @@ h3 {
 
     .left {
       font-size: 12px;
+
+      .sl-file {
+        position: relative;
+      }
+
+      .sl-file .sl-input-file {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 20px;
+        opacity: 0;
+        filter: alpha(opacity=0);
+        -ms-filter: "alpha(opacity=0)";
+        cursor: pointer;
+      }
+
+      .upload-close-handle {
+        cursor: pointer;
+        display: none;
+        padding: 4px;
+        font-weight: 800;
+        line-height: 23px;
+        color: #a6a6a6;
+        font-size: 12px;
+      }
     }
   }
 
