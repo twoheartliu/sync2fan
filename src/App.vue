@@ -180,7 +180,9 @@ function handleRemoveImg () {
                   class="sl-input-file" type="file" name="picture" id="upload-file"
                   accept="image/jpeg,image/png,image/gif">
               </div>
-              <span class="ul-filename" id="upload-filename" style="display: inline;">{{ fileList && fileList[0].name
+              <span class="ul-filename" id="upload-filename">{{ fileList
+                &&
+                fileList[0].name
               }}</span>
               <span v-if="fileList?.length" @click="handleRemoveImg" class="upload-close-handle" title="取消上传"
                 id="ul_close" style="display: inline;">×</span>
@@ -307,6 +309,15 @@ h3 {
         color: #a6a6a6;
         font-size: 12px;
       }
+
+      .ul-filename {
+        display: inline-block;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
     }
   }
 
