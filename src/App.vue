@@ -10,14 +10,14 @@ import loadingGif from '@/assets/ajax-indicator.gif'
 
 
 
-const inputValue = ref(null)
+const inputValue = ref('')
 const instanceURL = ref('nofan.xyz')
 const ffStore = useffStore()
 const mastoStore = useMastStore()
 const countdown = ref(140)
 const status = ref('')
 const isLoading = ref(false)
-const fileList = ref(null)
+const fileList = ref([])
 
 onMounted(async () => {
   ffStore.getUserInfo()
@@ -43,7 +43,7 @@ const logoutNofan = () => {
 }
 
 const updateChars = () => {
-  countdown.value = 140 - inputValue.value.length
+  countdown.value = 140 - inputValue.value?.length
 }
 
 async function sendMessage () {
@@ -111,7 +111,7 @@ async function sendMastoMessage () {
 function handleSuccess () {
   inputValue.value = ''
   status.value = '发送成功'
-  fileList.value = null
+  fileList.value = []
   setTimeout(() => {
     status.value = ''
   }, 2000)
@@ -122,7 +122,6 @@ function handleError (error) {
 }
 
 function handleFileUpload ($Event) {
-  console.log('event', $Event)
   const { files } = $Event.target
   if (files) {
     fileList.value = files
@@ -130,7 +129,16 @@ function handleFileUpload ($Event) {
 }
 
 function handleRemoveImg () {
-  fileList.value = null
+  fileList.value = []
+}
+
+function handleKeyDown (event) {
+  const isMacOS = navigator.userAgent.indexOf('Mac OS X') !== -1
+
+  if ((isMacOS && event.metaKey) || (!isMacOS && event.ctrlKey) && event.key === 'Enter') {
+    // 在这里执行你的操作
+    sendMessage()
+  }
 }
 </script>
 
@@ -165,7 +173,7 @@ function handleRemoveImg () {
       <img :src="loadingGif" alt="loading" v-if="isLoading">
     </div>
     <div class="textarea">
-      <textarea v-model="inputValue" @keyup.enter.ctrl="sendMessage" @input="updateChars"></textarea>
+      <textarea v-model="inputValue" @keydown="handleKeyDown" @input="updateChars"></textarea>
     </div>
 
     <div class="actions">
@@ -175,17 +183,15 @@ function handleRemoveImg () {
               id="upload-base64">
             <div class="upload-button-wrapper">
               <div class="sl-file">
-                <div :class="fileList?.length ? 'pngfix sf-image-attached' : 'pngfix'" id="upload-button" title="上传图片"
+                <div :class="fileList.length ? 'pngfix sf-image-attached' : 'pngfix'" id="upload-button" title="上传图片"
                   style="background-position: -40px 0px;"></div><input @change="handleFileUpload" title="上传图片，最大2MB"
                   class="sl-input-file" type="file" name="picture" id="upload-file"
                   accept="image/jpeg,image/png,image/gif">
               </div>
-              <span class="ul-filename" id="upload-filename">{{ fileList
-                &&
-                fileList[0].name
+              <span v-if="fileList.length" class="ul-filename" id="upload-filename">{{ fileList[0].name
               }}</span>
-              <span v-if="fileList?.length" @click="handleRemoveImg" class="upload-close-handle" title="取消上传"
-                id="ul_close" style="display: inline;">×</span>
+              <span v-if="fileList.length" @click="handleRemoveImg" class="upload-close-handle" title="取消上传" id="ul_close"
+                style="display: inline;">×</span>
             </div>
           </div>
         </div>
@@ -312,12 +318,11 @@ h3 {
 
       .ul-filename {
         display: inline-block;
-        max-width: 150px;
+        max-width: 100px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-
     }
   }
 
