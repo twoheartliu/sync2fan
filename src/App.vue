@@ -1,5 +1,4 @@
 <script setup>
-import fs from "node:fs"
 import { ref, onMounted } from 'vue'
 import useffStore from '@/store/fanfou'
 import useMastStore from '@/store/mastodon'
@@ -7,8 +6,6 @@ import { ff } from '@/utils/fanfou'
 import { errorHandler } from '@/utils'
 import { apis } from '@/utils/mastodon'
 import loadingGif from '@/assets/ajax-indicator.gif'
-
-
 
 const inputValue = ref('')
 const instanceURL = ref('nofan.xyz')
@@ -206,7 +203,7 @@ function handleKeyDown (event) {
     </div>
     <footer>
       <a href="https://github.com/twoheartliu/sync2fan" target="_blank">Built</a> by <a href="https://nofan.xyz/@twoheart"
-        target="_blank">@twoheart</a>. <a href="https://github.com/twoheartliu/sync2fan/blob/main/PRIVACY.MD"
+        target="_blank">@twoheart</a>. <a href="https://github.com/twoheartliu/sync2fan/blob/main/PRIVACY.md"
         target="_blank">Privacy Policy</a>.
     </footer>
   </div>
