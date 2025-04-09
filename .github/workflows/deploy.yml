@@ -25,10 +25,9 @@ jobs:
           node-version: '20'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3 # 使用 pnpm 官方 action
+        uses: pnpm/action-setup@v3
         with:
-          version: 8 # 指定 pnpm 版本
-          run_install: false # 先不安装依赖
+          version: 8
 
       - name: Get pnpm store directory
         shell: bash
@@ -44,7 +43,12 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile # 使用 lockfile 确保依赖版本一致
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile  # 如果存在 lock 文件，使用 frozen-lockfile
+          else
+            pnpm install  # 首次运行，生成 lock 文件 
+          fi
 
       - name: Build project
         run: pnpm run build
