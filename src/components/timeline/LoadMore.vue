@@ -1,5 +1,4 @@
 <script setup>
-import { defineEmits } from 'vue'
 import loadingGif from '@/assets/ajax-indicator.gif'
 
 const props = defineProps({
