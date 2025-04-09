@@ -43,12 +43,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install --frozen-lockfile  # 如果存在 lock 文件，使用 frozen-lockfile
-          else
-            pnpm install  # 首次运行，生成 lock 文件 
-          fi
+        run: pnpm install --no-frozen-lockfile # 明确指定不使用 frozen-lockfile
 
       - name: Build project
         run: pnpm run build
@@ -69,12 +64,3 @@ jobs:
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
-        with:
-          name: production-files
-          path: ./dist
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
