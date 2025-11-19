@@ -10,6 +10,19 @@ const props = defineProps({
   }
 })
 
+// 定义事件，用于向父组件传递预览图片的请求
+const emit = defineEmits(['preview-image'])
+
+// 处理图片预览
+const handlePreviewImage = (imageUrl) => {
+  emit('preview-image', imageUrl)
+}
+
+// 处理卡片图片点击
+const handleCardImageClick = (event, imageUrl) => {
+  event.preventDefault()
+  emit('preview-image', imageUrl)
+}
 </script>
 
 <template>
@@ -49,15 +62,17 @@ const props = defineProps({
       <div v-html="safeGet(post, 'reblog.content', safeGet(post, 'content', ''))"></div>
 
       <!-- 媒体附件 -->
-      <MediaAttachment :media="getMediaAttachments(post)" />
+      <MediaAttachment :media="getMediaAttachments(post)" @preview-image="handlePreviewImage" />
 
       <!-- 卡片 -->
       <div v-if="(safeGet(post, 'reblog.card') || safeGet(post, 'card'))"
         class="mt-3 border border-gray-700 rounded-lg overflow-hidden">
         <a :href="safeGet(post, 'reblog.card.url', safeGet(post, 'card.url', '#'))" target="_blank" class="block">
           <div v-if="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))" class="aspect-video bg-gray-800">
-            <img :src="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))" class="w-full h-full object-cover"
-              :alt="safeGet(post, 'reblog.card.title', safeGet(post, 'card.title', ''))">
+            <img :src="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))"
+              class="w-full h-full object-cover cursor-pointer"
+              :alt="safeGet(post, 'reblog.card.title', safeGet(post, 'card.title', ''))"
+              @click="(e) => handleCardImageClick(e, safeGet(post, 'reblog.card.image', safeGet(post, 'card.image')))">
           </div>
           <div class="p-3">
             <div class="font-bold text-sm">{{ safeGet(post, 'reblog.card.title', safeGet(post, 'card.title', '')) }}

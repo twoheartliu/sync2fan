@@ -39,7 +39,6 @@ export function hasProperty(obj, prop) {
  * @returns {Array} 媒体附件数组
  */
 export function getMediaAttachments(post) {
-  console.log("post", post);
   if (post.source === "mastodon") {
     if (
       hasProperty(post, "reblog") &&

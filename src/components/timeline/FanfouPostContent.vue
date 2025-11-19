@@ -10,9 +10,19 @@ const props = defineProps({
   }
 })
 
+// 定义事件，用于向父组件传递预览图片的请求
+const emit = defineEmits(['preview-image'])
+
 // 获取媒体附件
-function getMediaAttachments (post) {
+function getMediaAttachments(post) {
+  console.log('post', post)
   return post.photo ? [post.photo] : []
+}
+
+// 处理图片预览
+const handlePreviewImage = (imageUrl) => {
+  console.log('imageUrl', imageUrl)
+  emit('preview-image', imageUrl)
 }
 </script>
 
@@ -36,7 +46,7 @@ function getMediaAttachments (post) {
     </p>
 
     <!-- 媒体附件 -->
-    <MediaAttachment :media="getMediaAttachments(post)" />
+    <MediaAttachment :media="getMediaAttachments(post)" @preview-image="handlePreviewImage" />
 
     <!-- 交互按钮 -->
     <div class="flex flex-wrap gap-4 mt-3 text-sm">
