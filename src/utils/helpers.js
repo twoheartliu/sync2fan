@@ -6,19 +6,19 @@
  * @returns {*} 属性值或默认值
  */
 export function safeGet(obj, path, defaultValue = null) {
-  if (!obj) return defaultValue
+  if (!obj) return defaultValue;
 
-  const keys = path.split('.')
-  let result = obj
+  const keys = path.split(".");
+  let result = obj;
 
   for (const key of keys) {
-    if (result === null || result === undefined || typeof result !== 'object') {
-      return defaultValue
+    if (result === null || result === undefined || typeof result !== "object") {
+      return defaultValue;
     }
-    result = result[key]
+    result = result[key];
   }
 
-  return result !== undefined ? result : defaultValue
+  return result !== undefined ? result : defaultValue;
 }
 
 /**
@@ -28,7 +28,9 @@ export function safeGet(obj, path, defaultValue = null) {
  * @returns {boolean} 是否存在该属性
  */
 export function hasProperty(obj, prop) {
-  return obj && Object.prototype.hasOwnProperty.call(obj, prop) && obj[prop] !== null
+  return (
+    obj && Object.prototype.hasOwnProperty.call(obj, prop) && obj[prop] !== null
+  );
 }
 
 /**
@@ -37,11 +39,15 @@ export function hasProperty(obj, prop) {
  * @returns {Array} 媒体附件数组
  */
 export function getMediaAttachments(post) {
-  if (post.source === 'mastodon') {
-    if (hasProperty(post, 'reblog') && hasProperty(post.reblog, 'media_attachments')) {
-      return post.reblog.media_attachments
+  console.log("post", post);
+  if (post.source === "mastodon") {
+    if (
+      hasProperty(post, "reblog") &&
+      hasProperty(post.reblog, "mediaAttachments")
+    ) {
+      return post.reblog.mediaAttachments;
     }
-    return hasProperty(post, 'media_attachments') ? post.media_attachments : []
+    return hasProperty(post, "mediaAttachments") ? post.mediaAttachments : [];
   }
-  return hasProperty(post, 'photo') ? [post.photo] : []
+  return hasProperty(post, "photo") ? [post.photo] : [];
 }

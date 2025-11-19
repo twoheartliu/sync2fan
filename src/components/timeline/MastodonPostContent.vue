@@ -1,5 +1,5 @@
 <script setup>
-import { safeGet } from '@/utils/helpers'
+import { safeGet, getMediaAttachments } from '@/utils/helpers'
 import { formatTimeAgo } from '@/utils/formatters'
 import MediaAttachment from './MediaAttachment.vue'
 
@@ -10,13 +10,6 @@ const props = defineProps({
   }
 })
 
-// 获取媒体附件
-function getMediaAttachments (post) {
-  if (safeGet(post, 'reblog.media_attachments')) {
-    return post.reblog.media_attachments
-  }
-  return safeGet(post, 'media_attachments', [])
-}
 </script>
 
 <template>
@@ -63,8 +56,7 @@ function getMediaAttachments (post) {
         class="mt-3 border border-gray-700 rounded-lg overflow-hidden">
         <a :href="safeGet(post, 'reblog.card.url', safeGet(post, 'card.url', '#'))" target="_blank" class="block">
           <div v-if="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))" class="aspect-video bg-gray-800">
-            <img :src="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))"
-              class="w-full h-full object-cover"
+            <img :src="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))" class="w-full h-full object-cover"
               :alt="safeGet(post, 'reblog.card.title', safeGet(post, 'card.title', ''))">
           </div>
           <div class="p-3">
