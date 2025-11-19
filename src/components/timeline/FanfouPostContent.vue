@@ -15,13 +15,11 @@ const emit = defineEmits(['preview-image'])
 
 // 获取媒体附件
 function getMediaAttachments(post) {
-  console.log('post', post)
   return post.photo ? [post.photo] : []
 }
 
 // 处理图片预览
 const handlePreviewImage = (imageUrl) => {
-  console.log('imageUrl', imageUrl)
   emit('preview-image', imageUrl)
 }
 </script>
