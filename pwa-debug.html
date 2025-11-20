@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA 状态检查 - Sync2Fan</title>
+  <style>
+    body {
+      font-family: 'Noto Sans SC', Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1b1e;
+      color: #fff;
+    }
+    h1 {
+      color: #3b82f6;
+    }
+    .status-item {
+      background: #2c2e33;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 4px solid #3b82f6;
+    }
+    .status-item.success {
+      border-left-color: #10b981;
+    }
+    .status-item.error {
+      border-left-color: #ef4444;
+    }
+    .status-item.warning {
+      border-left-color: #f59e0b;
+    }
+    pre {
+      background: #1a1b1e;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 PWA 状态检查</h1>
+
+  <div id="status-container"></div>
+
+  <div style="margin-top: 20px;">
+    <button onclick="checkStatus()">刷新检查</button>
+    <button onclick="unregisterSW()">卸载 Service Worker</button>
+    <button onclick="clearCaches()">清除缓存</button>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      const container = document.getElementById('status-container')
+      container.innerHTML = ''
+
+      // 1. 检查 Service Worker 支持
+      addStatus(
+        'Service Worker 支持',
+        'serviceWorker' in navigator ? '✅ 支持' : '❌ 不支持',
+        'serviceWorker' in navigator ? 'success' : 'error'
+      )
+
+      // 2. 检查 HTTPS
+      addStatus(
+        'HTTPS 协议',
+        location.protocol === 'https:' || location.hostname === 'localhost' ? '✅ 安全连接' : '⚠️ 需要 HTTPS',
+        location.protocol === 'https:' || location.hostname === 'localhost' ? 'success' : 'warning'
+      )
+
+      // 3. 检查 Manifest
+      try {
+        const manifestResponse = await fetch('/manifest.json')
+        const manifest = await manifestResponse.json()
+        addStatus(
+          'Manifest 文件',
+          `✅ 已加载<pre>${JSON.stringify(manifest, null, 2)}</pre>`,
+          'success'
+        )
+      } catch (error) {
+        addStatus(
+          'Manifest 文件',
+          `❌ 加载失败: ${error.message}`,
+          'error'
+        )
+      }
+
+      // 4. 检查 Service Worker 注册
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations()
+          if (registrations.length > 0) {
+            registrations.forEach((reg, index) => {
+              addStatus(
+                `Service Worker ${index + 1}`,
+                `✅ 已注册<br>
+                Scope: ${reg.scope}<br>
+                Active: ${reg.active ? '是' : '否'}<br>
+                Installing: ${reg.installing ? '是' : '否'}<br>
+                Waiting: ${reg.waiting ? '是' : '否'}`,
+                'success'
+              )
+            })
+          } else {
+            addStatus(
+              'Service Worker 注册',
+              '⚠️ 未找到已注册的 Service Worker',
+              'warning'
+            )
+          }
+        } catch (error) {
+          addStatus(
+            'Service Worker 注册',
+            `❌ 检查失败: ${error.message}`,
+            'error'
+          )
+        }
+      }
+
+      // 5. 检查缓存
+      if ('caches' in window) {
+        try {
+          const cacheNames = await caches.keys()
+          addStatus(
+            '缓存状态',
+            cacheNames.length > 0
+              ? `✅ 找到 ${cacheNames.length} 个缓存<pre>${cacheNames.join('\n')}</pre>`
+              : '⚠️ 没有缓存',
+            cacheNames.length > 0 ? 'success' : 'warning'
+          )
+        } catch (error) {
+          addStatus(
+            '缓存状态',
+            `❌ 检查失败: ${error.message}`,
+            'error'
+          )
+        }
+      }
+
+      // 6. 检查环境变量
+      addStatus(
+        '环境信息',
+        `User Agent: ${navigator.userAgent}<br>
+        当前 URL: ${location.href}<br>
+        协议: ${location.protocol}<br>
+        主机: ${location.host}`,
+        'success'
+      )
+    }
+
+    function addStatus(title, message, type = 'success') {
+      const container = document.getElementById('status-container')
+      const div = document.createElement('div')
+      div.className = `status-item ${type}`
+      div.innerHTML = `<strong>${title}</strong><br>${message}`
+      container.appendChild(div)
+    }
+
+    async function unregisterSW() {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        for (let reg of registrations) {
+          await reg.unregister()
+        }
+        alert('Service Worker 已卸载，请刷新页面')
+        location.reload()
+      }
+    }
+
+    async function clearCaches() {
+      if ('caches' in window) {
+        const cacheNames = await caches.keys()
+        for (let name of cacheNames) {
+          await caches.delete(name)
+        }
+        alert('缓存已清除')
+        checkStatus()
+      }
+    }
+
+    // 页面加载时自动检查
+    checkStatus()
+
+    // 监听 Service Worker 消息
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        console.log('[PWA Debug] Message from SW:', event.data)
+      })
+    }
+  </script>
+</body>
+</html>
