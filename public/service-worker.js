@@ -4,7 +4,7 @@ const CACHE_NAME = `sync2fan-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `sync2fan-runtime-${CACHE_VERSION}`;
 
 // 需要预缓存的静态资源
-const PRECACHE_URLS = ["/", "/index.html", "/manifest.json"];
+const PRECACHE_URLS = ["./", "./index.html", "./manifest.json"];
 
 // 安装事件 - 预缓存关键资源
 self.addEventListener("install", (event) => {
