@@ -8,7 +8,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:filter'])
 
-function setFilter (filter) {
+function setFilter(filter) {
   emit('update:filter', filter)
 }
 </script>
@@ -21,11 +21,11 @@ function setFilter (filter) {
     </button>
     <button @click="setFilter('mastodon')"
       :class="['px-4 py-2 rounded-full text-sm', currentFilter === 'mastodon' ? 'filter-active' : 'hover:bg-gray-700']">
-      <i class="fab fa-mastodon mr-1"></i> Mastodon
+      <Icon name="mastodon" class="mr-1" />
     </button>
     <button @click="setFilter('fanfou')"
       :class="['px-4 py-2 rounded-full text-sm', currentFilter === 'fanfou' ? 'filter-active' : 'hover:bg-gray-700']">
-      <i class="fas fa-coffee mr-1"></i> 饭否
+      <Icon name="fanfou" class="mr-1" />
     </button>
   </div>
 </template>

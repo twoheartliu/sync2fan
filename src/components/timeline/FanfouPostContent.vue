@@ -35,7 +35,7 @@ const handlePreviewImage = (imageUrl) => {
       <span class="text-sm text-gray-500">
         {{ formatTimeAgo(post.created_at) }}
       </span>
-      <i class="fas fa-coffee text-blue-400 ml-1"></i>
+      <Icon name="fanfou" class="text-blue-400 ml-1" />
     </div>
 
     <!-- 消息内容 -->

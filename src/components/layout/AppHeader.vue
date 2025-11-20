@@ -16,20 +16,20 @@ const { isDarkMode, toggleTheme } = useTheme()
           <div class="flex space-x-1">
             <button v-if="mastoStore.userInfo.id"
               class="px-2 py-1 rounded-full text-xs sm:text-sm bg-opacity-20 bg-blue-600 text-blue-400">
-              <i class="fab fa-mastodon mr-1"></i> <span class="hidden xs:inline">已连接</span>
+              <Icon name="mastodon" class="mr-1" /> <span class="hidden xs:inline">已连接</span>
             </button>
             <button v-else @click="getMastodonAuth"
               class="px-2 py-1 rounded-full text-xs sm:text-sm bg-opacity-20 bg-gray-600 text-gray-400">
-              <i class="fab fa-mastodon mr-1"></i> <span class="hidden xs:inline">连接</span> NOFAN
+              <Icon name="mastodon" class="mr-1" /> <span class="hidden xs:inline">连接</span> NOFAN
             </button>
 
             <button v-if="ffStore.userInfo.id"
               class="px-2 py-1 rounded-full text-xs sm:text-sm bg-opacity-20 bg-blue-400 text-blue-300">
-              <i class="fas fa-coffee mr-1"></i> <span class="hidden xs:inline">已连接</span>
+              <Icon name="fanfou" class="mr-1" /> <span class="hidden xs:inline">已连接</span>
             </button>
             <button v-else @click="getffAuth"
               class="px-2 py-1 rounded-full text-xs sm:text-sm bg-opacity-20 bg-gray-600 text-gray-400">
-              <i class="fas fa-coffee mr-1"></i> <span class="hidden xs:inline">连接</span>饭否
+              <Icon name="fanfou" class="mr-1" /> <span class="hidden xs:inline">连接</span>饭否
             </button>
           </div>
         </div>

@@ -42,7 +42,7 @@ const handleCardImageClick = (event, imageUrl) => {
       <span class="text-sm text-gray-500">
         {{ formatTimeAgo(post.createdAt) }}
       </span>
-      <i class="fab fa-mastodon text-purple-500 ml-1"></i>
+      <Icon name="mastodon" class="text-purple-500 ml-1" />
 
       <!-- 转发标记 -->
       <span v-if="post.reblog" class="ml-2 text-sm text-gray-500">
