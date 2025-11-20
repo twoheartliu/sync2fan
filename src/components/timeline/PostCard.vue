@@ -13,14 +13,18 @@ const props = defineProps({
 // 图片预览相关状态
 const showImagePreview = ref(false)
 const previewImageUrl = ref('')
+const scrollPosition = ref(0)
 
 // 打开图片预览
 const openImagePreview = (imageUrl) => {
   previewImageUrl.value = imageUrl
   showImagePreview.value = true
+  // 保存当前滚动位置
+  scrollPosition.value = window.pageYOffset || document.documentElement.scrollTop
   // 禁止背景滚动
   document.body.style.overflow = 'hidden'
   document.body.style.position = 'fixed'
+  document.body.style.top = `-${scrollPosition.value}px`
   document.body.style.width = '100%'
 }
 
@@ -31,6 +35,9 @@ const closeImagePreview = () => {
   document.body.style.overflow = ''
   document.body.style.position = ''
   document.body.style.width = ''
+  document.body.style.top = ''
+  // 恢复滚动位置
+  window.scrollTo(0, scrollPosition.value)
 }
 
 // 处理键盘事件

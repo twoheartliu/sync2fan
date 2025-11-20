@@ -68,9 +68,10 @@ const handleCardImageClick = (event, imageUrl) => {
       <div v-if="(safeGet(post, 'reblog.card') || safeGet(post, 'card'))"
         class="mt-3 border border-gray-700 rounded-lg overflow-hidden">
         <a :href="safeGet(post, 'reblog.card.url', safeGet(post, 'card.url', '#'))" target="_blank" class="block">
-          <div v-if="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))" class="aspect-video bg-gray-800">
+          <div v-if="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))"
+            class="aspect-video bg-gray-800 max-h-64 overflow-hidden">
             <img :src="safeGet(post, 'reblog.card.image', safeGet(post, 'card.image'))"
-              class="w-full h-full object-cover cursor-pointer"
+              class="w-full object-cover cursor-pointer"
               :alt="safeGet(post, 'reblog.card.title', safeGet(post, 'card.title', ''))"
               @click="(e) => handleCardImageClick(e, safeGet(post, 'reblog.card.image', safeGet(post, 'card.image')))">
           </div>
