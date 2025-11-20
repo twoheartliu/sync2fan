@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:sync2fan.nofan.xyz)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

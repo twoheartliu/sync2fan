@@ -151,6 +151,18 @@ export default function useTimeline() {
     loadTimelines()
   }
 
+  // 刷新时间线（从头开始加载）
+  async function refreshTimelines() {
+    // 重置状态
+    page.value = 1
+    hasMorePosts.value = true
+    fanfouTimeline.value = []
+    mastodonTimeline.value = []
+
+    // 重新加载
+    await loadTimelines()
+  }
+
   // 设置过滤器
   function setFilter(filter) {
     if (currentFilter.value === filter) return
@@ -171,6 +183,7 @@ export default function useTimeline() {
     mergedTimeline,
     loadTimelines,
     loadMore,
+    refreshTimelines,
     setFilter,
   }
 }

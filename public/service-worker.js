@@ -1,6 +1,7 @@
 // Service Worker for Sync2Fan PWA
-const CACHE_NAME = 'sync2fan-v1'
-const RUNTIME_CACHE = 'sync2fan-runtime'
+const CACHE_VERSION = 'v2' // 增加版本号强制更新
+const CACHE_NAME = `sync2fan-${CACHE_VERSION}`
+const RUNTIME_CACHE = `sync2fan-runtime-${CACHE_VERSION}`
 
 // 需要预缓存的静态资源
 const PRECACHE_URLS = [
@@ -11,36 +12,41 @@ const PRECACHE_URLS = [
 
 // 安装事件 - 预缓存关键资源
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Install')
+  console.log('[Service Worker] Install - Version:', CACHE_VERSION)
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Precaching app shell')
       return cache.addAll(PRECACHE_URLS)
+    }).then(() => {
+      // 强制激活新的 Service Worker
+      return self.skipWaiting()
     })
   )
-  // 强制激活新的 Service Worker
-  self.skipWaiting()
 })
 
 // 激活事件 - 清理旧缓存
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activate')
+  console.log('[Service Worker] Activate - Version:', CACHE_VERSION)
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((cacheName) => {
-            return cacheName.startsWith('sync2fan-') && cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE
+            // 删除所有旧版本的缓存
+            return cacheName.startsWith('sync2fan-') &&
+                   cacheName !== CACHE_NAME &&
+                   cacheName !== RUNTIME_CACHE
           })
           .map((cacheName) => {
             console.log('[Service Worker] Deleting old cache:', cacheName)
             return caches.delete(cacheName)
           })
       )
+    }).then(() => {
+      // 立即接管所有页面
+      return self.clients.claim()
     })
   )
-  // 立即接管所有页面
-  return self.clients.claim()
 })
 
 // Fetch 事件 - 网络优先，失败时使用缓存
@@ -113,3 +119,14 @@ async function syncPosts() {
   // 这里可以实现离线发布的帖子同步逻辑
   console.log('[Service Worker] Syncing posts...')
 }
+
+// 添加消息监听，用于调试
+self.addEventListener('message', (event) => {
+  console.log('[Service Worker] Message received:', event.data)
+
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
+
+console.log('[Service Worker] Script loaded - Version:', CACHE_VERSION)

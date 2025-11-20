@@ -1,6 +1,6 @@
 <script setup>
 import useCompose from '@/composables/useCompose'
-import loadingGif from '@/assets/ajax-indicator.gif'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const {
   inputValue,
@@ -22,7 +22,7 @@ const {
       class="w-full h-24 bg-transparent resize-none focus:outline-none dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500" placeholder="有什么新鲜事想分享给大家？"></textarea>
     <div class="status text-sm mt-1 text-gray-600 dark:text-gray-400" v-if="status">
       {{ status }}
-      <img :src="loadingGif" alt="loading" v-if="isLoading" class="inline h-4">
+      <LoadingSpinner v-if="isLoading" size="xs" class="inline-block ml-1" />
     </div>
     <div class="flex justify-between items-center mt-4">
       <div class="flex space-x-4">

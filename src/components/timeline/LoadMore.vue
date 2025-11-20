@@ -1,5 +1,5 @@
 <script setup>
-import loadingGif from '@/assets/ajax-indicator.gif'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const props = defineProps({
   loading: {
@@ -25,8 +25,8 @@ function loadMore () {
   <div class="text-center py-4">
     <button @click="loadMore" class="px-6 py-2 rounded-full border border-gray-700 hover:bg-gray-700"
       :disabled="loading || !hasMore">
-      <span v-if="loading">
-        <img :src="loadingGif" alt="loading" class="inline h-4 mr-2">
+      <span v-if="loading" class="inline-flex items-center">
+        <LoadingSpinner size="xs" class="mr-2" />
         加载中...
       </span>
       <span v-else-if="!hasMore">没有更多了</span>

@@ -7,7 +7,7 @@ import TimelineFilter from '@/components/timeline/TimelineFilter.vue'
 import UserProfile from '@/components/user/UserProfile.vue'
 import PostCard from '@/components/timeline/PostCard.vue'
 import LoadMore from '@/components/timeline/LoadMore.vue'
-import loadingGif from '@/assets/ajax-indicator.gif'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 // 导入组合式函数
 import useAuth from '@/composables/useAuth.js'
@@ -26,6 +26,7 @@ const {
   hasMorePosts,
   loadTimelines,
   loadMore,
+  refreshTimelines,
   setFilter
 } = useTimeline()
 const { sendMessage } = useCompose()
@@ -34,6 +35,8 @@ const { sendMessage } = useCompose()
 const showComposeModal = ref(false)
 // 控制悬浮按钮显示状态
 const showFloatingButton = ref(false)
+// 控制刷新按钮显示状态
+const showRefreshButton = ref(true)
 // 用于追踪滚动位置
 const lastScrollPosition = ref(0)
 // 发布框区域的引用
@@ -99,6 +102,21 @@ function scrollToTop() {
     behavior: 'smooth'
   })
 }
+
+// 刷新时间线并回到顶部
+async function refreshAndScrollToTop() {
+  // 隐藏刷新按钮
+  showRefreshButton.value = false
+
+  // 执行刷新
+  await refreshTimelines()
+  scrollToTop()
+
+  // 3秒后重新显示刷新按钮
+  setTimeout(() => {
+    showRefreshButton.value = true
+  }, 3000)
+}
 </script>
 
 <template>
@@ -137,8 +155,7 @@ function scrollToTop() {
     <div class="mt-6 space-y-4">
       <!-- 加载中提示 -->
       <div v-if="timelineLoading && mergedTimeline.length === 0" class="text-center py-8">
-        <img :src="loadingGif" alt="loading" class="inline h-6 mr-2">
-        <span>加载中...</span>
+        <LoadingSpinner size="md" text="加载中..." center />
       </div>
 
       <!-- 没有数据提示 -->
@@ -156,24 +173,35 @@ function scrollToTop() {
     </div>
   </main>
 
-  <!-- 悬浮按钮组 - 仅在滚动时显示 -->
-  <transition name="fade">
-    <div v-if="showFloatingButton" class="fixed bottom-6 right-6 flex flex-col space-y-3">
-      <!-- 回到顶部按钮 -->
-      <button @click="scrollToTop"
-        class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+  <!-- 悬浮按钮组 -->
+  <div class="fixed bottom-4 right-3 md:bottom-6 md:right-6 flex flex-col space-y-3 z-40">
+    <!-- 回到顶部按钮 - 仅在滚动时显示 -->
+    <transition name="fade">
+      <button v-if="showFloatingButton" @click="scrollToTop"
+        class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-lg transition-colors"
         title="回到顶部">
-        <i class="fas fa-arrow-up text-gray-600 dark:text-gray-300"></i>
+        <i class="fas fa-arrow-up text-gray-600 dark:text-gray-300 text-base md:text-lg"></i>
       </button>
+    </transition>
 
-      <!-- 发布按钮 -->
-      <button @click="openComposeModal"
-        class="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
-        title="发布新消息">
-        <i class="fas fa-pen"></i>
+    <!-- 刷新按钮 - 一直显示，点击后3秒内隐藏 -->
+    <transition name="fade">
+      <button v-if="showRefreshButton" @click="refreshAndScrollToTop"
+        class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-lg transition-colors"
+        title="刷新时间线">
+        <i class="fas fa-rotate-right text-gray-600 dark:text-gray-300 text-base md:text-lg"></i>
       </button>
-    </div>
-  </transition>
+    </transition>
+
+    <!-- 发布按钮 - 仅在滚动时显示 -->
+    <transition name="fade">
+      <button v-if="showFloatingButton" @click="openComposeModal"
+        class="bg-blue-500 hover:bg-blue-600 text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center shadow-lg transition-colors"
+        title="发布新消息">
+        <i class="fas fa-pen text-base md:text-lg"></i>
+      </button>
+    </transition>
+  </div>
 
   <!-- 发布框弹窗 -->
   <div v-if="showComposeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

@@ -21,10 +21,41 @@
   color-scheme: light;
 }
 
+/* 防止页面横向滚动 */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  position: relative;
+}
+
 body {
   font-family: 'Noto Sans SC', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+}
+
+/* 防止长文本溢出 */
+* {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 防止长 URL 和代码溢出 */
+a, code, pre {
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+/* 图片响应式 */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 确保所有容器不会溢出 */
+#app {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .compose-box {

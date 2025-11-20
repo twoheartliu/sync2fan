@@ -14,6 +14,14 @@ export default defineConfig({
   server: {
     port: 1234,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // 确保 service-worker.js 不被打包处理
+        manualChunks: undefined,
+      }
+    }
+  },
   css: {
     preprocessorOptions: {
       scss: {
