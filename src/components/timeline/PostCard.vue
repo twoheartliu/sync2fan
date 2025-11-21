@@ -99,8 +99,8 @@ onUnmounted(() => {
 
       <div class="flex-1 min-w-0">
         <!-- 根据来源显示不同的内容组件 -->
-        <MastodonPostContent v-if="post.source === 'mastodon'" :post="post" @preview-image="openImagePreview" @toggle-comments="toggleComments" />
-        <FanfouPostContent v-else :post="post" @preview-image="openImagePreview" @toggle-comments="toggleComments" />
+        <MastodonPostContent v-if="post.source === 'mastodon'" :post="post" @preview-image="openImagePreview" @toggle-comments="toggleComments" @reblog-success="$emit('reblog-success')" />
+        <FanfouPostContent v-else :post="post" @preview-image="openImagePreview" @toggle-comments="toggleComments" @repost-success="$emit('repost-success')" />
 
         <!-- 评论区 -->
         <CommentSection

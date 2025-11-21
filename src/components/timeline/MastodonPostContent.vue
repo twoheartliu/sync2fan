@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { safeGet, getMediaAttachments } from '@/utils/helpers'
 import { formatTimeAgo } from '@/utils/formatters'
 import { replaceEmojisFromStore } from '@/utils/emoji'
@@ -17,10 +17,16 @@ const props = defineProps({
 })
 
 // 定义事件，用于向父组件传递预览图片的请求
-const emit = defineEmits(['preview-image', 'toggle-comments'])
+const emit = defineEmits(['preview-image', 'toggle-comments', 'reblog-success'])
 
 // 控制内容警告的展开/收起
 const showSpoilerContent = ref(false)
+
+// 转发相关状态
+const showReblogMenu = ref(false)
+const showQuoteModal = ref(false)
+const quoteContent = ref('')
+const isReblogging = ref(false)
 
 // 父级消息（如果是回复）
 const parentPost = ref(null)
@@ -69,6 +75,23 @@ const currentPostContent = computed(() => {
 const canReblog = computed(() => {
   const visibility = safeGet(props.post, 'reblog.visibility', safeGet(props.post, 'visibility', 'public'))
   return visibility === 'public' || visibility === 'unlisted'
+})
+
+// 判断是否已转发
+const isReblogged = computed(() => {
+  return safeGet(props.post, 'reblog.reblogged', safeGet(props.post, 'reblogged', false))
+})
+
+// 计算转发总数（包括转发和引用）
+const totalReblogsCount = computed(() => {
+  const reblogsCount = safeGet(props.post, 'reblog.reblogsCount', safeGet(props.post, 'reblogsCount', 0))
+  const quotesCount = safeGet(props.post, 'reblog.quotesCount', safeGet(props.post, 'quotesCount', 0))
+
+  // 如果有引用数，返回总和；否则只返回转发数
+  if (quotesCount) {
+    return reblogsCount + quotesCount
+  }
+  return reblogsCount
 })
 
 // 获取帖子的可见性
@@ -166,7 +189,137 @@ onMounted(() => {
   if (isReply.value) {
     fetchParentPost()
   }
+  // 添加全局点击监听，用于关闭转发菜单
+  document.addEventListener('click', handleClickOutside)
 })
+
+onBeforeUnmount(() => {
+  // 移除全局点击监听
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// 处理点击外部关闭菜单
+function handleClickOutside(event) {
+  const target = event.target
+  // 如果点击的不是转发按钮或菜单内部，则关闭菜单
+  if (!target.closest('.reblog-menu-container')) {
+    closeReblogMenu()
+  }
+}
+
+// 获取原始消息 ID（去掉前缀）
+function getOriginalPostId() {
+  const id = safeGet(props.post, 'reblog.id', safeGet(props.post, 'id', ''))
+  return id.replace(/^mast_/, '')
+}
+
+// 切换转发菜单
+function toggleReblogMenu() {
+  showReblogMenu.value = !showReblogMenu.value
+}
+
+// 关闭转发菜单
+function closeReblogMenu() {
+  showReblogMenu.value = false
+}
+
+// 执行转发（Reblog/Boost）或取消转发
+async function handleReblog() {
+  if (isReblogging.value) return
+
+  closeReblogMenu()
+  isReblogging.value = true
+
+  try {
+    const postId = getOriginalPostId()
+
+    if (isReblogged.value) {
+      // 取消转发
+      await apis.masto.v1.statuses.$select(postId).unreblog()
+      // 更新本地状态
+      if (props.post.reblog) {
+        props.post.reblog.reblogged = false
+        props.post.reblog.reblogsCount = Math.max(0, (props.post.reblog.reblogsCount || 1) - 1)
+      } else {
+        props.post.reblogged = false
+        props.post.reblogsCount = Math.max(0, (props.post.reblogsCount || 1) - 1)
+      }
+      alert('已取消转发')
+    } else {
+      // 转发
+      await apis.masto.v1.statuses.$select(postId).reblog()
+      // 更新本地状态
+      if (props.post.reblog) {
+        props.post.reblog.reblogged = true
+        props.post.reblog.reblogsCount = (props.post.reblog.reblogsCount || 0) + 1
+      } else {
+        props.post.reblogged = true
+        props.post.reblogsCount = (props.post.reblogsCount || 0) + 1
+      }
+      alert('转发成功！')
+    }
+
+    emit('reblog-success')
+  } catch (error) {
+    console.error('转发操作失败:', error)
+    alert(isReblogged.value ? '取消转发失败，请重试' : '转发失败，请重试')
+  } finally {
+    isReblogging.value = false
+  }
+}
+
+// 打开引用弹窗
+function openQuoteModal() {
+  quoteContent.value = ''
+  showQuoteModal.value = true
+  closeReblogMenu()
+}
+
+// 关闭引用弹窗
+function closeQuoteModal() {
+  showQuoteModal.value = false
+  quoteContent.value = ''
+}
+
+// 执行引用
+async function handleQuote() {
+  if (isReblogging.value) return
+
+  const content = quoteContent.value.trim()
+  if (!content) {
+    alert('请输入引用内容')
+    return
+  }
+
+  if (content.length > 500) {
+    alert('内容超过500字限制')
+    return
+  }
+
+  isReblogging.value = true
+  try {
+    const postId = getOriginalPostId()
+
+    await apis.masto.v1.statuses.create({
+      status: content,
+      language: 'zh-cn',
+      sensitive: false,
+      mediaIds: [],
+      quotedStatusId: postId,
+      quoteApprovalPolicy: 'public',
+      visibility: 'public'
+    })
+
+    closeQuoteModal()
+    emit('reblog-success')
+    alert('引用成功！')
+  } catch (error) {
+    console.error('引用失败:', error)
+    alert('引用失败，请重试')
+  } finally {
+    isReblogging.value = false
+  }
+}
 
 </script>
 
@@ -181,12 +334,8 @@ onMounted(() => {
 
       <div class="flex items-start space-x-2">
         <!-- 父消息头像 -->
-        <img
-          v-if="parentPost.account?.avatar"
-          :src="parentPost.account.avatar"
-          class="w-6 h-6 rounded-full flex-shrink-0"
-          :alt="parentPost.account.displayName || parentPost.account.username"
-        />
+        <img v-if="parentPost.account?.avatar" :src="parentPost.account.avatar" class="w-6 h-6 rounded-full flex-shrink-0"
+          :alt="parentPost.account.displayName || parentPost.account.username" />
 
         <div class="flex-1 min-w-0">
           <!-- 父消息作者 -->
@@ -208,7 +357,8 @@ onMounted(() => {
     </div>
 
     <!-- 加载父消息中 -->
-    <div v-else-if="isReply && loadingParent" class="mb-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-blue-500">
+    <div v-else-if="isReply && loadingParent"
+      class="mb-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-blue-500">
       <div class="flex items-center space-x-2 text-xs text-gray-400">
         <i class="fas fa-spinner fa-spin"></i>
         <span>加载回复的消息...</span>
@@ -354,7 +504,8 @@ onMounted(() => {
       </div>
 
       <!-- 引用消息 -->
-      <div v-if="hasQuote && quotedPost" class="mt-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-green-500">
+      <div v-if="hasQuote && quotedPost"
+        class="mt-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-green-500">
         <div class="flex items-center space-x-2 mb-2 text-xs text-gray-400">
           <i class="fas fa-quote-left"></i>
           <span>引用</span>
@@ -362,12 +513,9 @@ onMounted(() => {
 
         <div class="flex items-start space-x-2">
           <!-- 引用消息头像 -->
-          <img
-            v-if="quotedPost.account?.avatar"
-            :src="quotedPost.account.avatar"
+          <img v-if="quotedPost.account?.avatar" :src="quotedPost.account.avatar"
             class="w-6 h-6 rounded-full flex-shrink-0"
-            :alt="quotedPost.account.displayName || quotedPost.account.username"
-          />
+            :alt="quotedPost.account.displayName || quotedPost.account.username" />
 
           <div class="flex-1 min-w-0">
             <!-- 引用消息作者 -->
@@ -388,14 +536,9 @@ onMounted(() => {
             <!-- 引用消息的媒体附件（如果有） -->
             <div v-if="quotedPost.mediaAttachments && quotedPost.mediaAttachments.length > 0" class="mt-2">
               <div class="grid grid-cols-2 gap-2">
-                <img
-                  v-for="media in quotedPost.mediaAttachments.slice(0, 4)"
-                  :key="media.id"
-                  :src="media.previewUrl || media.url"
-                  class="rounded w-full h-24 object-cover cursor-pointer"
-                  :alt="media.description || ''"
-                  @click="handlePreviewImage(media.url)"
-                />
+                <img v-for="media in quotedPost.mediaAttachments.slice(0, 4)" :key="media.id"
+                  :src="media.previewUrl || media.url" class="rounded w-full h-24 object-cover cursor-pointer"
+                  :alt="media.description || ''" @click="handlePreviewImage(media.url)" />
               </div>
             </div>
           </div>
@@ -409,17 +552,35 @@ onMounted(() => {
         <i class="far fa-comment"></i>
         <span>{{ post.reblog ? post.reblog.repliesCount || 0 : post.repliesCount || 0 }}</span>
       </button>
-      <button
-        :disabled="!canReblog"
-        :class="[
+
+      <!-- 转发按钮（带下拉菜单） -->
+      <div class="relative reblog-menu-container">
+        <button @click="toggleReblogMenu" :disabled="!canReblog" :class="[
           'flex items-center space-x-2 transition-colors',
-          canReblog ? 'hover:text-green-400' : 'opacity-50 cursor-not-allowed'
-        ]"
-        :title="!canReblog ? '此消息不可转发' : ''"
-      >
-        <i class="fas fa-retweet"></i>
-        <span>{{ post.reblog ? post.reblog.reblogsCount || 0 : post.reblogsCount || 0 }}</span>
-      </button>
+          canReblog ? (isReblogged ? 'text-green-500 hover:text-green-400' : 'hover:text-green-400') : 'opacity-50 cursor-not-allowed'
+        ]" :title="!canReblog ? '此消息不可转发' : ''">
+          <i class="fas fa-retweet"></i>
+          <span>{{ totalReblogsCount }}</span>
+        </button>
+
+        <!-- 转发菜单 -->
+        <div v-if="showReblogMenu && canReblog"
+          class="absolute bottom-full mb-2 left-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[120px]">
+          <button @click="handleReblog"
+            class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+            :disabled="isReblogging">
+            <i class="fas fa-retweet text-green-500"></i>
+            <span>{{ isReblogged ? '取消转发' : '转发' }}</span>
+          </button>
+          <button @click="openQuoteModal"
+            class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+            :disabled="isReblogging">
+            <i class="fas fa-quote-left text-blue-500"></i>
+            <span>引用</span>
+          </button>
+        </div>
+      </div>
+
       <button class="flex items-center space-x-2 hover:text-red-400">
         <i class="far fa-heart"></i>
         <span>{{ post.reblog ? post.reblog.favouritesCount || 0 : post.favouritesCount || 0 }}</span>
@@ -428,5 +589,63 @@ onMounted(() => {
         <i class="far fa-bookmark"></i>
       </button>
     </div>
+
+    <!-- 引用弹窗 -->
+    <Teleport to="body">
+      <div v-if="showQuoteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        @click.self="closeQuoteModal">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
+          <!-- 弹窗头部 -->
+          <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-lg font-bold dark:text-white">引用嘟文</h2>
+            <button @click="closeQuoteModal"
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- 弹窗内容 -->
+          <div class="p-4">
+            <!-- 引用内容输入框 -->
+            <textarea v-model="quoteContent"
+              class="w-full bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+              placeholder="说点什么..." rows="4" :disabled="isReblogging"></textarea>
+
+            <!-- 字数统计 -->
+            <div class="text-right text-xs mt-1" :class="quoteContent.length > 500 ? 'text-red-500' : 'text-gray-500'">
+              {{ quoteContent.length }}/500
+            </div>
+
+            <!-- 原消息预览 -->
+            <div class="mt-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border-l-2 border-green-500">
+              <div class="text-xs text-gray-500 mb-1">引用的嘟文</div>
+              <div class="flex items-start space-x-2">
+                <img v-if="safeGet(post, 'reblog.account.avatar', safeGet(post, 'account.avatar'))"
+                  :src="safeGet(post, 'reblog.account.avatar', safeGet(post, 'account.avatar'))"
+                  class="w-6 h-6 rounded-full flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-sm truncate" v-html="userDisplayName"></div>
+                  <div class="text-sm text-gray-600 dark:text-gray-300 line-clamp-3" v-html="currentPostContent"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 弹窗底部 -->
+          <div class="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
+            <button @click="closeQuoteModal"
+              class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              :disabled="isReblogging">
+              取消
+            </button>
+            <button @click="handleQuote" :disabled="isReblogging || !quoteContent.trim() || quoteContent.length > 500"
+              class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
+              <span v-if="isReblogging"><i class="fas fa-spinner fa-spin mr-1"></i>引用中...</span>
+              <span v-else>引用</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
