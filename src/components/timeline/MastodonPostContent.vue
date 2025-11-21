@@ -12,7 +12,7 @@ const props = defineProps({
 })
 
 // 定义事件，用于向父组件传递预览图片的请求
-const emit = defineEmits(['preview-image'])
+const emit = defineEmits(['preview-image', 'toggle-comments'])
 
 // 控制内容警告的展开/收起
 const showSpoilerContent = ref(false)
@@ -32,6 +32,7 @@ const handleCardImageClick = (event, imageUrl) => {
 const toggleSpoiler = () => {
   showSpoilerContent.value = !showSpoilerContent.value
 }
+
 </script>
 
 <template>
@@ -39,9 +40,9 @@ const toggleSpoiler = () => {
     <!-- 用户信息 -->
     <div class="flex items-center space-x-2 flex-wrap">
       <span class="font-bold truncate">
-        {{ safeGet(post, 'reblog.account.display_name',
+        {{ safeGet(post, 'reblog.account.displayName',
           safeGet(post, 'reblog.account.username',
-            safeGet(post, 'account.display_name',
+            safeGet(post, 'account.displayName',
               safeGet(post, 'account.username', '未知用户')))) }}
       </span>
       <span class="text-sm text-gray-500">
@@ -53,8 +54,7 @@ const toggleSpoiler = () => {
       </span>
 
       <!-- 编辑标记 -->
-      <span v-if="safeGet(post, 'reblog.edited_at', safeGet(post, 'edited_at'))" class="text-sm text-gray-500"
-        title="已编辑">
+      <span v-if="safeGet(post, 'reblog.editedAt', safeGet(post, 'editedAt'))" class="text-sm text-gray-500" title="已编辑">
         <i class="fas fa-pen text-xs"></i>
       </span>
 
@@ -94,18 +94,18 @@ const toggleSpoiler = () => {
 
     <!-- 转发者信息 -->
     <div v-if="post.reblog" class="mt-1 text-sm text-gray-500">
-      <span class="font-medium">{{ safeGet(post, 'account.display_name', safeGet(post, 'account.username', ''))
+      <span class="font-medium">{{ safeGet(post, 'account.displayName', safeGet(post, 'account.username', ''))
       }}</span> 转发了
     </div>
 
     <!-- 内容警告 / Spoiler Text -->
-    <div v-if="safeGet(post, 'reblog.spoiler_text', safeGet(post, 'spoiler_text'))" class="mt-2">
+    <div v-if="safeGet(post, 'reblog.spoilerText', safeGet(post, 'spoilerText'))" class="mt-2">
       <div class="p-3 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30 rounded-lg">
         <div class="flex items-start space-x-2">
           <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
           <div class="flex-1">
             <div class="font-medium text-sm mb-2">
-              {{ safeGet(post, 'reblog.spoiler_text', safeGet(post, 'spoiler_text', '')) }}
+              {{ safeGet(post, 'reblog.spoilerText', safeGet(post, 'spoilerText', '')) }}
             </div>
             <button @click="toggleSpoiler" class="text-sm text-blue-400 hover:text-blue-300 flex items-center space-x-1">
               <span>{{ showSpoilerContent ? '隐藏内容' : '显示内容' }}</span>
@@ -118,7 +118,7 @@ const toggleSpoiler = () => {
 
     <!-- 消息内容 -->
     <div class="mt-2 text-sm md:text-base"
-      v-show="!safeGet(post, 'reblog.spoiler_text', safeGet(post, 'spoiler_text')) || showSpoilerContent">
+      v-show="!safeGet(post, 'reblog.spoilerText', safeGet(post, 'spoilerText')) || showSpoilerContent">
       <!-- Mastodon 内容 - 需要处理HTML -->
       <div v-html="safeGet(post, 'reblog.content', safeGet(post, 'content', ''))"></div>
 
@@ -143,7 +143,7 @@ const toggleSpoiler = () => {
               {{ safeGet(post, 'reblog.card.description', safeGet(post, 'card.description', '')) }}
             </div>
             <div class="text-xs text-gray-500 mt-1">
-              {{ safeGet(post, 'reblog.card.provider_name', safeGet(post, 'card.provider_name', '')) }}
+              {{ safeGet(post, 'reblog.card.providerName', safeGet(post, 'card.providerName', '')) }}
             </div>
           </div>
         </a>
@@ -157,24 +157,24 @@ const toggleSpoiler = () => {
           <div class="flex items-center">
             <div class="w-full bg-gray-700 rounded-full h-6 mr-2 relative overflow-hidden">
               <div class="bg-blue-600 h-full rounded-full" :style="{
-                width: `${option.votes_count / safeGet(post, 'reblog.poll.votes_count', safeGet(post, 'poll.votes_count', 1)) * 100}%`
+                width: `${option.votesCount / safeGet(post, 'reblog.poll.votesCount', safeGet(post, 'poll.votesCount', 1)) * 100}%`
               }"></div>
               <div class="absolute inset-0 flex items-center px-3">
                 <span class="text-xs text-white">{{ option.title }}</span>
               </div>
             </div>
             <span class="text-xs whitespace-nowrap">
-              {{ option.votes_count }} 票
+              {{ option.votesCount }} 票
             </span>
           </div>
         </div>
         <div class="text-xs text-gray-500 mt-2">
-          总票数: {{ safeGet(post, 'reblog.poll.votes_count', safeGet(post, 'poll.votes_count', 0)) }}
+          总票数: {{ safeGet(post, 'reblog.poll.votesCount', safeGet(post, 'poll.votesCount', 0)) }}
           <span v-if="safeGet(post, 'reblog.poll.expired', safeGet(post, 'poll.expired', false))" class="ml-2">
             (已结束)
           </span>
           <span v-else class="ml-2">
-            ({{ formatTimeAgo(safeGet(post, 'reblog.poll.expires_at', safeGet(post, 'poll.expires_at', '')))
+            ({{ formatTimeAgo(safeGet(post, 'reblog.poll.expiresAt', safeGet(post, 'poll.expiresAt', '')))
             }}结束)
           </span>
         </div>
@@ -183,17 +183,17 @@ const toggleSpoiler = () => {
 
     <!-- 交互按钮 -->
     <div class="flex flex-wrap gap-4 mt-3 text-sm">
-      <button class="flex items-center space-x-2 hover:text-blue-400">
+      <button @click="emit('toggle-comments')" class="flex items-center space-x-2 hover:text-blue-400">
         <i class="far fa-comment"></i>
-        <span>{{ safeGet(post, 'reblog.replies_count', safeGet(post, 'replies_count', 0)) }}</span>
+        <span>{{ post.reblog ? post.reblog.repliesCount || 0 : post.repliesCount || 0 }}</span>
       </button>
       <button class="flex items-center space-x-2 hover:text-green-400">
         <i class="fas fa-retweet"></i>
-        <span>{{ safeGet(post, 'reblog.reblogs_count', safeGet(post, 'reblogs_count', 0)) }}</span>
+        <span>{{ post.reblog ? post.reblog.reblogsCount || 0 : post.reblogsCount || 0 }}</span>
       </button>
       <button class="flex items-center space-x-2 hover:text-red-400">
         <i class="far fa-heart"></i>
-        <span>{{ safeGet(post, 'reblog.favourites_count', safeGet(post, 'favourites_count', 0)) }}</span>
+        <span>{{ post.reblog ? post.reblog.favouritesCount || 0 : post.favouritesCount || 0 }}</span>
       </button>
       <button class="flex items-center space-x-2 hover:text-blue-400">
         <i class="far fa-bookmark"></i>

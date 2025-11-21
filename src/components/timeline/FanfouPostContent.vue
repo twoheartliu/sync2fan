@@ -11,7 +11,7 @@ const props = defineProps({
 })
 
 // 定义事件，用于向父组件传递预览图片的请求
-const emit = defineEmits(['preview-image'])
+const emit = defineEmits(['preview-image', 'toggle-comments'])
 
 // 获取媒体附件
 function getMediaAttachments(post) {
@@ -72,7 +72,7 @@ const handlePreviewImage = (imageUrl) => {
 
     <!-- 交互按钮 -->
     <div class="flex flex-wrap gap-4 mt-3 text-sm">
-      <button class="flex items-center space-x-2 hover:text-blue-400">
+      <button @click="emit('toggle-comments')" class="flex items-center space-x-2 hover:text-blue-400">
         <i class="far fa-comment"></i>
       </button>
       <button class="flex items-center space-x-2 hover:text-green-400">

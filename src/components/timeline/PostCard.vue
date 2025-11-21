@@ -1,7 +1,9 @@
 <script setup>
 import MastodonPostContent from './MastodonPostContent.vue'
 import FanfouPostContent from './FanfouPostContent.vue'
-import { ref, onMounted, onUnmounted } from 'vue'
+import CommentSection from './CommentSection.vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { safeGet } from '@/utils/helpers'
 
 const props = defineProps({
   post: {
@@ -14,6 +16,30 @@ const props = defineProps({
 const showImagePreview = ref(false)
 const previewImageUrl = ref('')
 const scrollPosition = ref(0)
+
+// 评论展开状态
+const showComments = ref(false)
+
+// 切换评论展开
+const toggleComments = () => {
+  showComments.value = !showComments.value
+}
+
+// 获取原帖作者信息（用于回复）
+const replyToUserId = computed(() => {
+  if (props.post.source === 'fanfou') {
+    return safeGet(props.post, 'user.id', '')
+  }
+  return ''
+})
+
+const replyToUsername = computed(() => {
+  if (props.post.source === 'mastodon') {
+    return safeGet(props.post, 'reblog.account.acct', safeGet(props.post, 'account.acct', ''))
+  } else {
+    return safeGet(props.post, 'user.screen_name', '')
+  }
+})
 
 // 打开图片预览
 const openImagePreview = (imageUrl) => {
@@ -73,8 +99,17 @@ onUnmounted(() => {
 
       <div class="flex-1 min-w-0">
         <!-- 根据来源显示不同的内容组件 -->
-        <MastodonPostContent v-if="post.source === 'mastodon'" :post="post" @preview-image="openImagePreview" />
-        <FanfouPostContent v-else :post="post" @preview-image="openImagePreview" />
+        <MastodonPostContent v-if="post.source === 'mastodon'" :post="post" @preview-image="openImagePreview" @toggle-comments="toggleComments" />
+        <FanfouPostContent v-else :post="post" @preview-image="openImagePreview" @toggle-comments="toggleComments" />
+
+        <!-- 评论区 -->
+        <CommentSection
+          v-if="showComments"
+          :post-id="post.id"
+          :source="post.source"
+          :reply-to-user-id="replyToUserId"
+          :reply-to-username="replyToUsername"
+        />
       </div>
     </div>
   </article>
