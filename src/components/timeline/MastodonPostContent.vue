@@ -57,6 +57,17 @@ const currentPostContent = computed(() => {
   return content
 })
 
+// 判断是否可以转发（private 和 direct 不允许转发）
+const canReblog = computed(() => {
+  const visibility = safeGet(props.post, 'reblog.visibility', safeGet(props.post, 'visibility', 'public'))
+  return visibility === 'public' || visibility === 'unlisted'
+})
+
+// 获取帖子的可见性
+const postVisibility = computed(() => {
+  return safeGet(props.post, 'reblog.visibility', safeGet(props.post, 'visibility', 'public'))
+})
+
 // 处理图片预览
 const handlePreviewImage = (imageUrl) => {
   emit('preview-image', imageUrl)
@@ -342,11 +353,18 @@ onMounted(() => {
 
     <!-- 交互按钮 -->
     <div class="flex flex-wrap gap-4 mt-3 text-sm">
-      <button @click="emit('toggle-comments')" class="flex items-center space-x-2 hover:text-blue-400">
+      <button @click="emit('toggle-comments')" class="flex items-center space-x-2 hover:text-blue-400 transition-colors">
         <i class="far fa-comment"></i>
         <span>{{ post.reblog ? post.reblog.repliesCount || 0 : post.repliesCount || 0 }}</span>
       </button>
-      <button class="flex items-center space-x-2 hover:text-green-400">
+      <button
+        :disabled="!canReblog"
+        :class="[
+          'flex items-center space-x-2 transition-colors',
+          canReblog ? 'hover:text-green-400' : 'opacity-50 cursor-not-allowed'
+        ]"
+        :title="!canReblog ? '此消息不可转发' : ''"
+      >
         <i class="fas fa-retweet"></i>
         <span>{{ post.reblog ? post.reblog.reblogsCount || 0 : post.reblogsCount || 0 }}</span>
       </button>
