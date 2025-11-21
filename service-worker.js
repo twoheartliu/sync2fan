@@ -33,9 +33,10 @@ self.addEventListener("activate", (event) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => {
-              // 删除所有旧版本的缓存（包括 sync2fan 旧缓存）
+              // 删除所有旧版本的缓存（包括 MixFan 旧缓存）
               return (
-                (cacheName.startsWith("mixfan-") || cacheName.startsWith("sync2fan-")) &&
+                (cacheName.startsWith("mixfan-") ||
+                  cacheName.startsWith("MixFan-")) &&
                 cacheName !== CACHE_NAME &&
                 cacheName !== RUNTIME_CACHE
               );
