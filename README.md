@@ -1,7 +1,7 @@
 English |
-[简体中文](https://github.com/twoheartliu/sync2fan/blob/main/README.zh-cn.md)
+[简体中文](https://github.com/twoheartliu/MixFan/blob/main/README.zh-cn.md)
 
-<h1 align="center"/>sync2fan <sup><em>alpha</em></sup></h1>
+<h1 align="center"/>MixFan <sup><em>alpha</em></sup></h1>
 
 <p align="center">
 A nimble web client for posting to both Fanfou and Mastodon(nofan)
@@ -10,14 +10,14 @@ A nimble web client for posting to both Fanfou and Mastodon(nofan)
 <br/>
 
 <p align="center">
-  <a href="https://sync2fan.nofan.xyz/" target="_blank" rel="noopener noreferrer" >
-    <img src="./public/screenshot.jpg" alt="sync2fan screenshot" width="200" height="auto">
+  <a href="https://MixFan.nofan.xyz/" target="_blank" rel="noopener noreferrer" >
+    <img src="./public/screenshot.jpg" alt="MixFan screenshot" width="200" height="auto">
   </a>
 </p>
 
-## ⚠️ sync2fan is in Alpha
+## ⚠️ MixFan is in Alpha
 
-It is already quite usable, but it isn't ready for wide adoption yet. Check out the [Open Issues](https://github.com/twoheartliu/sync2fan/issues) and jump in the action.
+It is already quite usable, but it isn't ready for wide adoption yet. Check out the [Open Issues](https://github.com/twoheartliu/MixFan/issues) and jump in the action.
 
 ## Deployment
 

@@ -1,14 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:sync2fan.nofan.xyz)",
+      "WebFetch(domain:MixFan.nofan.xyz)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nFix PWA configuration for GitHub Pages deployment\n\n- 升级 Service Worker 到 v2，强制更新\n- 优化 Vite 构建配置\n- 增强 Service Worker 注册和监控\n- 添加详细的 PWA 调试页面 (/pwa-debug.html)\n- 修复移动端横向滚动问题\n- 改进缓存策略和版本管理\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm audit:*)"
+      "Bash(pnpm audit:*)",
+      "Bash(git remote set-url:*)"
     ],
     "deny": [],
     "ask": []

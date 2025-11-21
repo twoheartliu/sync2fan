@@ -1,4 +1,4 @@
-<h1 align="center"/>sync2fan <sup><em>alpha</em></sup></h1>
+<h1 align="center"/>MixFan <sup><em>alpha</em></sup></h1>
 
 <p align="center">
 一个轻巧的将消息同时发布到 Mastodon（nofan) 实例与饭否的网页应用
@@ -7,14 +7,14 @@
 <br/>
 
 <p align="center">
-  <a href="https://sync2fan.nofan.xyz/" target="_blank" rel="noopener noreferrer" >
-    <img src="./public/screenshot.jpg" alt="sync2fan screenshot" width="200" height="auto">
+  <a href="https://MixFan.nofan.xyz/" target="_blank" rel="noopener noreferrer" >
+    <img src="./public/screenshot.jpg" alt="MixFan screenshot" width="200" height="auto">
   </a>
 </p>
 
-## sync2fan 仍在早期版本
+## MixFan 仍在早期版本
 
-sync2fan 目前可用性有限，欢迎使用 [Open Issues](https://github.com/twoheartliu/sync2fan/issues) 提交故障或提出建议。
+MixFan 目前可用性有限，欢迎使用 [Open Issues](https://github.com/twoheartliu/MixFan/issues) 提交故障或提出建议。
 
 ## 部署
 

@@ -1,12 +1,14 @@
-# Sync2Fan 重构计划
+# MixFan 重构计划
 
 ## 组件拆分
 
 ### 1. 布局组件
+
 - `AppHeader.vue` - 顶部导航栏
 - `AppFooter.vue` - 页脚
 
 ### 2. 功能组件
+
 - `ComposeBox.vue` - 发布框组件
 - `TimelineFilter.vue` - 时间线筛选器
 - `UserProfile.vue` - 用户信息展示
@@ -19,15 +21,19 @@
 ## Composables 拆分
 
 ### 1. 认证相关
+
 - `useAuth.js` - 处理认证逻辑
 
 ### 2. 时间线相关
+
 - `useTimeline.js` - 处理时间线加载和合并逻辑
 
 ### 3. 发布相关
+
 - `useCompose.js` - 处理消息发布逻辑
 
 ### 4. 主题相关
+
 - `useTheme.js` - 处理主题切换逻辑
 
 ## 工具函数拆分
