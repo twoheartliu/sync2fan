@@ -124,7 +124,7 @@ async function refreshAndScrollToTop() {
   <AppHeader />
 
   <!-- 主内容区 -->
-  <main class="container mx-auto px-4 py-4">
+  <main class="container mx-auto px-4 py-4 min-h-[calc(100vh-170px)]">
     <!-- 普通发布框 -->
     <div ref="composeBoxRef" class="mb-4">
       <ComposeBox @send-message="handleSendMessage" />
