@@ -135,7 +135,7 @@ async function refreshAndScrollToTop() {
 
     <!-- 提示信息 -->
     <div v-if="!ffStore.userInfo.id || !mastoStore.userInfo.id" class="mt-8 p-4 bg-opacity-10 bg-blue-500 rounded-lg">
-      <h2 class="text-lg font-bold mb-2">欢迎使用 Sync2Fan</h2>
+      <h2 class="text-lg font-bold mb-2">欢迎使用拌饭 MixFan</h2>
       <ul class="list-disc list-inside space-y-1 text-sm">
         <li>请点击连接 NOFAN 实例账号和饭否账号</li>
         <li>消息将同步发送到长毛象 NOFAN 实例和饭否</li>

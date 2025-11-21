@@ -11,7 +11,7 @@ const { isDarkMode, toggleTheme } = useTheme()
     <div class="container mx-auto px-4">
       <div class="flex justify-between items-center h-14">
         <div class="flex items-center space-x-2">
-          <h1 class="text-xl font-bold">Sync2Fan</h1>
+          <h1 class="text-xl font-bold">拌饭 MixFan</h1>
           <!-- 使用flex而不是flex-wrap确保横向排列 -->
           <div class="flex space-x-1">
             <button v-if="mastoStore.userInfo.id"

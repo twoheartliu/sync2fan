@@ -1,7 +1,5 @@
 # PWA (Progressive Web App) 功能说明
 
-## 已完成的配置
-
 ✅ **Web App Manifest** - `/public/manifest.json`
 - 应用名称、图标、主题色等配置
 - 支持 standalone 模式（独立应用窗口）
