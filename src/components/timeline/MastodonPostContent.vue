@@ -89,7 +89,7 @@ const toggleSpoiler = () => {
     <!-- 发布应用信息 -->
     <div v-if="safeGet(post, 'reblog.application.name', safeGet(post, 'application.name'))"
       class="text-xs text-gray-500 mt-1">
-      来自 {{ safeGet(post, 'reblog.application.name', safeGet(post, 'application.name', '')) }}
+      通过 {{ safeGet(post, 'reblog.application.name', safeGet(post, 'application.name', '')) }}
     </div>
 
     <!-- 转发者信息 -->
@@ -198,5 +198,6 @@ const toggleSpoiler = () => {
       <button class="flex items-center space-x-2 hover:text-blue-400">
         <i class="far fa-bookmark"></i>
       </button>
+    </div>
   </div>
-</div></template>
+</template>
