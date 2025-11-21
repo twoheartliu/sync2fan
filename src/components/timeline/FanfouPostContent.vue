@@ -31,11 +31,35 @@ const handlePreviewImage = (imageUrl) => {
       <span class="font-bold truncate">
         {{ safeGet(post, 'user.name', '未知用户') }}
       </span>
+      <span class="text-sm text-gray-500">
+        @{{ safeGet(post, 'user.screen_name', '') }}
+      </span>
       <span class="text-sm text-gray-500">·</span>
       <span class="text-sm text-gray-500">
         {{ formatTimeAgo(post.created_at) }}
       </span>
+
+      <!-- 受保护账号标记 -->
+      <span v-if="safeGet(post, 'user.protected', false)" class="text-sm text-gray-500" title="受保护的账号">
+        <i class="fas fa-lock text-xs"></i>
+      </span>
+
       <Icon name="fanfou" class="text-blue-400 ml-1" />
+
+      <!-- 转发标记 -->
+      <span v-if="post.repost_status_id" class="ml-2 text-sm text-gray-500">
+        <i class="fas fa-retweet mr-1"></i> 转发
+      </span>
+    </div>
+
+    <!-- 发布应用信息 -->
+    <div class="text-xs text-gray-500 mt-1">
+      通过 <span v-html="post.application || '网页'"></span>
+    </div>
+
+    <!-- 转发者信息 -->
+    <div v-if="post.repost_status_id && post.repost_screen_name" class="mt-1 text-sm text-gray-500">
+      转自 <span class="font-medium">@{{ post.repost_screen_name }}</span>
     </div>
 
     <!-- 消息内容 -->
