@@ -2,8 +2,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { safeGet, getMediaAttachments } from '@/utils/helpers'
 import { formatTimeAgo } from '@/utils/formatters'
+import { replaceEmojisFromStore } from '@/utils/emoji'
 import MediaAttachment from './MediaAttachment.vue'
 import { apis } from '@/utils/mastodon'
+import useMastodonStore from '@/store/mastodon'
+
+const mastoStore = useMastodonStore()
 
 const props = defineProps({
   post: {
@@ -44,15 +48,19 @@ const quotedPost = computed(() => {
   return safeGet(props.post, 'reblog.quote.quotedStatus', safeGet(props.post, 'quote.quotedStatus', null))
 })
 
-// 获取当前帖子的内容（移除引用的内联标记）
+// 获取当前帖子的内容（移除引用的内联标记，替换 emoji）
 const currentPostContent = computed(() => {
-  const content = safeGet(props.post, 'reblog.content', safeGet(props.post, 'content', ''))
+  let content = safeGet(props.post, 'reblog.content', safeGet(props.post, 'content', ''))
 
   // 如果有引用，移除 <p class="quote-inline">...</p> 部分
   if (hasQuote.value) {
     // 使用正则表达式移除 quote-inline 段落
-    return content.replace(/<p class="quote-inline">.*?<\/p>/i, '').trim()
+    content = content.replace(/<p class="quote-inline">.*?<\/p>/i, '').trim()
   }
+
+  // 替换自定义 emoji
+  const postEmojis = safeGet(props.post, 'reblog.emojis', safeGet(props.post, 'emojis', []))
+  content = replaceEmojisFromStore(content, mastoStore.customEmojis, postEmojis)
 
   return content
 })
@@ -66,6 +74,59 @@ const canReblog = computed(() => {
 // 获取帖子的可见性
 const postVisibility = computed(() => {
   return safeGet(props.post, 'reblog.visibility', safeGet(props.post, 'visibility', 'public'))
+})
+
+// 获取用户显示名称（替换 emoji）
+const userDisplayName = computed(() => {
+  const displayName = safeGet(props.post, 'reblog.account.displayName',
+    safeGet(props.post, 'reblog.account.username',
+      safeGet(props.post, 'account.displayName',
+        safeGet(props.post, 'account.username', '未知用户'))))
+
+  // 获取用户的 emoji
+  const accountEmojis = safeGet(props.post, 'reblog.account.emojis', safeGet(props.post, 'account.emojis', []))
+
+  return replaceEmojisFromStore(displayName, mastoStore.customEmojis, accountEmojis)
+})
+
+// 获取引用消息的内容（替换 emoji）
+const quotedPostContent = computed(() => {
+  if (!quotedPost.value) return ''
+
+  const content = quotedPost.value.content || ''
+  const quotedEmojis = quotedPost.value.emojis || []
+
+  return replaceEmojisFromStore(content, mastoStore.customEmojis, quotedEmojis)
+})
+
+// 获取引用消息作者显示名称（替换 emoji）
+const quotedPostAuthorName = computed(() => {
+  if (!quotedPost.value) return ''
+
+  const displayName = quotedPost.value.account?.displayName || quotedPost.value.account?.username || '未知用户'
+  const accountEmojis = quotedPost.value.account?.emojis || []
+
+  return replaceEmojisFromStore(displayName, mastoStore.customEmojis, accountEmojis)
+})
+
+// 获取父消息的内容（替换 emoji）
+const parentPostContent = computed(() => {
+  if (!parentPost.value) return ''
+
+  const content = parentPost.value.content || ''
+  const parentEmojis = parentPost.value.emojis || []
+
+  return replaceEmojisFromStore(content, mastoStore.customEmojis, parentEmojis)
+})
+
+// 获取父消息作者显示名称（替换 emoji）
+const parentPostAuthorName = computed(() => {
+  if (!parentPost.value) return ''
+
+  const displayName = parentPost.value.account?.displayName || parentPost.value.account?.username || '未知用户'
+  const accountEmojis = parentPost.value.account?.emojis || []
+
+  return replaceEmojisFromStore(displayName, mastoStore.customEmojis, accountEmojis)
 })
 
 // 处理图片预览
@@ -130,9 +191,7 @@ onMounted(() => {
         <div class="flex-1 min-w-0">
           <!-- 父消息作者 -->
           <div class="flex items-center space-x-2 mb-1">
-            <span class="font-medium text-sm truncate">
-              {{ parentPost.account?.displayName || parentPost.account?.username || '未知用户' }}
-            </span>
+            <span class="font-medium text-sm truncate" v-html="parentPostAuthorName"></span>
             <span class="text-xs text-gray-500 truncate">
               @{{ parentPost.account?.acct || '' }}
             </span>
@@ -143,7 +202,7 @@ onMounted(() => {
           </div>
 
           <!-- 父消息内容（截断显示） -->
-          <div class="text-sm text-gray-300 line-clamp-3" v-html="parentPost.content"></div>
+          <div class="text-sm text-gray-300 line-clamp-3" v-html="parentPostContent"></div>
         </div>
       </div>
     </div>
@@ -158,12 +217,7 @@ onMounted(() => {
 
     <!-- 用户信息 -->
     <div class="flex items-center space-x-2 flex-wrap">
-      <span class="font-bold truncate">
-        {{ safeGet(post, 'reblog.account.displayName',
-          safeGet(post, 'reblog.account.username',
-            safeGet(post, 'account.displayName',
-              safeGet(post, 'account.username', '未知用户')))) }}
-      </span>
+      <span class="font-bold truncate" v-html="userDisplayName"></span>
       <span class="text-sm text-gray-500">
         @{{ safeGet(post, 'reblog.account.acct', safeGet(post, 'account.acct', '')) }}
       </span>
@@ -318,9 +372,7 @@ onMounted(() => {
           <div class="flex-1 min-w-0">
             <!-- 引用消息作者 -->
             <div class="flex items-center space-x-2 mb-1">
-              <span class="font-medium text-sm truncate">
-                {{ quotedPost.account?.displayName || quotedPost.account?.username || '未知用户' }}
-              </span>
+              <span class="font-medium text-sm truncate" v-html="quotedPostAuthorName"></span>
               <span class="text-xs text-gray-500 truncate">
                 @{{ quotedPost.account?.acct || '' }}
               </span>
@@ -331,7 +383,7 @@ onMounted(() => {
             </div>
 
             <!-- 引用消息内容 -->
-            <div class="text-sm text-gray-300" v-html="quotedPost.content"></div>
+            <div class="text-sm text-gray-300" v-html="quotedPostContent"></div>
 
             <!-- 引用消息的媒体附件（如果有） -->
             <div v-if="quotedPost.mediaAttachments && quotedPost.mediaAttachments.length > 0" class="mt-2">

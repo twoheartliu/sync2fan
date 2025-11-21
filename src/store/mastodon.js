@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import queryString from 'query-string'
+import axios from 'axios'
 import {
   registerApplication,
   getAuthorizationURL,
@@ -18,6 +19,7 @@ const useffStore = defineStore('mastodon', {
       vapid_key: '',
       isLoged: false,
       access_token: '',
+      customEmojis: [], // 自定义表情列表
     }
   },
   getters: {},
@@ -87,6 +89,18 @@ const useffStore = defineStore('mastodon', {
           instance: instanceURL,
           accessToken: this.access_token,
         })
+      }
+    },
+    // 获取自定义表情
+    async fetchCustomEmojis(instanceURL) {
+      try {
+        const response = await axios.get(`https://${instanceURL}/api/v1/custom_emojis`)
+        this.customEmojis = response.data
+        console.log(`[Mastodon] 已加载 ${this.customEmojis.length} 个自定义表情`)
+        return this.customEmojis
+      } catch (error) {
+        console.error('[Mastodon] 获取自定义表情失败:', error)
+        return []
       }
     },
   },

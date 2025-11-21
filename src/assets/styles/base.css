@@ -139,6 +139,16 @@ img {
   vertical-align: -0.1em;
 }
 
+/* 自定义 emoji 样式 */
+.custom-emoji {
+  height: 1.25em;
+  width: 1.25em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.2em;
+  display: inline-block;
+  object-fit: contain;
+}
+
 /* 行数限制 */
 .line-clamp-2 {
   display: -webkit-box;

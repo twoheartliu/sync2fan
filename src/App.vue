@@ -47,6 +47,9 @@ onMounted(async () => {
   ffStore.getUserInfo()
   mastoStore.getUserInfo(instanceURL.value)
 
+  // 加载 Mastodon 自定义表情
+  mastoStore.fetchCustomEmojis(instanceURL.value)
+
   // 加载时间线
   loadTimelines()
 
