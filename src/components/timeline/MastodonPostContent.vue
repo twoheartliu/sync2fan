@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { safeGet, getMediaAttachments } from '@/utils/helpers'
 import { formatTimeAgo } from '@/utils/formatters'
 import MediaAttachment from './MediaAttachment.vue'
@@ -13,6 +14,9 @@ const props = defineProps({
 // 定义事件，用于向父组件传递预览图片的请求
 const emit = defineEmits(['preview-image'])
 
+// 控制内容警告的展开/收起
+const showSpoilerContent = ref(false)
+
 // 处理图片预览
 const handlePreviewImage = (imageUrl) => {
   emit('preview-image', imageUrl)
@@ -22,6 +26,11 @@ const handlePreviewImage = (imageUrl) => {
 const handleCardImageClick = (event, imageUrl) => {
   event.preventDefault()
   emit('preview-image', imageUrl)
+}
+
+// 切换内容警告显示
+const toggleSpoiler = () => {
+  showSpoilerContent.value = !showSpoilerContent.value
 }
 </script>
 
@@ -42,6 +51,33 @@ const handleCardImageClick = (event, imageUrl) => {
       <span class="text-sm text-gray-500">
         {{ formatTimeAgo(post.createdAt) }}
       </span>
+
+      <!-- 编辑标记 -->
+      <span v-if="safeGet(post, 'reblog.edited_at', safeGet(post, 'edited_at'))" class="text-sm text-gray-500"
+        title="已编辑">
+        <i class="fas fa-pen text-xs"></i>
+      </span>
+
+      <!-- 可见性标记 -->
+      <span v-if="safeGet(post, 'reblog.visibility', safeGet(post, 'visibility')) === 'unlisted'"
+        class="text-sm text-gray-500" title="不公开列出">
+        <i class="fas fa-lock-open text-xs"></i>
+      </span>
+      <span v-else-if="safeGet(post, 'reblog.visibility', safeGet(post, 'visibility')) === 'private'"
+        class="text-sm text-gray-500" title="仅关注者">
+        <i class="fas fa-lock text-xs"></i>
+      </span>
+      <span v-else-if="safeGet(post, 'reblog.visibility', safeGet(post, 'visibility')) === 'direct'"
+        class="text-sm text-gray-500" title="私信">
+        <i class="fas fa-envelope text-xs"></i>
+      </span>
+
+      <!-- 敏感内容标记 -->
+      <span v-if="safeGet(post, 'reblog.sensitive', safeGet(post, 'sensitive', false))" class="text-sm text-orange-500"
+        title="敏感内容">
+        <i class="fas fa-eye-slash text-xs"></i>
+      </span>
+
       <Icon name="mastodon" class="text-purple-500 ml-1" />
 
       <!-- 转发标记 -->
@@ -50,14 +86,39 @@ const handleCardImageClick = (event, imageUrl) => {
       </span>
     </div>
 
+    <!-- 发布应用信息 -->
+    <div v-if="safeGet(post, 'reblog.application.name', safeGet(post, 'application.name'))"
+      class="text-xs text-gray-500 mt-1">
+      来自 {{ safeGet(post, 'reblog.application.name', safeGet(post, 'application.name', '')) }}
+    </div>
+
     <!-- 转发者信息 -->
     <div v-if="post.reblog" class="mt-1 text-sm text-gray-500">
       <span class="font-medium">{{ safeGet(post, 'account.display_name', safeGet(post, 'account.username', ''))
       }}</span> 转发了
     </div>
 
+    <!-- 内容警告 / Spoiler Text -->
+    <div v-if="safeGet(post, 'reblog.spoiler_text', safeGet(post, 'spoiler_text'))" class="mt-2">
+      <div class="p-3 bg-yellow-500 bg-opacity-10 border border-yellow-500 border-opacity-30 rounded-lg">
+        <div class="flex items-start space-x-2">
+          <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+          <div class="flex-1">
+            <div class="font-medium text-sm mb-2">
+              {{ safeGet(post, 'reblog.spoiler_text', safeGet(post, 'spoiler_text', '')) }}
+            </div>
+            <button @click="toggleSpoiler" class="text-sm text-blue-400 hover:text-blue-300 flex items-center space-x-1">
+              <span>{{ showSpoilerContent ? '隐藏内容' : '显示内容' }}</span>
+              <i :class="showSpoilerContent ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 消息内容 -->
-    <div class="mt-2 text-sm md:text-base">
+    <div class="mt-2 text-sm md:text-base"
+      v-show="!safeGet(post, 'reblog.spoiler_text', safeGet(post, 'spoiler_text')) || showSpoilerContent">
       <!-- Mastodon 内容 - 需要处理HTML -->
       <div v-html="safeGet(post, 'reblog.content', safeGet(post, 'content', ''))"></div>
 
@@ -137,6 +198,5 @@ const handleCardImageClick = (event, imageUrl) => {
       <button class="flex items-center space-x-2 hover:text-blue-400">
         <i class="far fa-bookmark"></i>
       </button>
-    </div>
   </div>
-</template>
+</div></template>
