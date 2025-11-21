@@ -1,7 +1,7 @@
 {
-  "name": "拌饭 - 统一信息流",
+  "name": "拌饭 - 饭否否饭，一碗拌匀",
   "short_name": "拌饭",
-  "description": "同步发送到长毛象 NOFAN 实例和饭否的统一信息流应用",
+  "description": "联通长毛象 NOFAN 实例和饭否的应用",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#1f2937",
