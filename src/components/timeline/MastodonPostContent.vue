@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { safeGet, getMediaAttachments } from '@/utils/helpers'
 import { formatTimeAgo } from '@/utils/formatters'
 import MediaAttachment from './MediaAttachment.vue'
+import { apis } from '@/utils/mastodon'
 
 const props = defineProps({
   post: {
@@ -16,6 +17,21 @@ const emit = defineEmits(['preview-image', 'toggle-comments'])
 
 // 控制内容警告的展开/收起
 const showSpoilerContent = ref(false)
+
+// 父级消息（如果是回复）
+const parentPost = ref(null)
+const loadingParent = ref(false)
+
+// 检查当前帖子是否是回复
+const isReply = computed(() => {
+  const inReplyToId = safeGet(props.post, 'reblog.inReplyToId', safeGet(props.post, 'inReplyToId'))
+  return !!inReplyToId
+})
+
+// 获取回复的消息ID
+const replyToId = computed(() => {
+  return safeGet(props.post, 'reblog.inReplyToId', safeGet(props.post, 'inReplyToId', ''))
+})
 
 // 处理图片预览
 const handlePreviewImage = (imageUrl) => {
@@ -33,10 +49,78 @@ const toggleSpoiler = () => {
   showSpoilerContent.value = !showSpoilerContent.value
 }
 
+// 获取父级消息
+async function fetchParentPost() {
+  if (!isReply.value || !replyToId.value) return
+
+  loadingParent.value = true
+  try {
+    const parent = await apis.masto.v1.statuses.$select(replyToId.value).fetch()
+    parentPost.value = parent
+  } catch (error) {
+    console.error('获取父级消息失败:', error)
+    parentPost.value = null
+  } finally {
+    loadingParent.value = false
+  }
+}
+
+// 组件挂载时获取父级消息
+onMounted(() => {
+  if (isReply.value) {
+    fetchParentPost()
+  }
+})
+
 </script>
 
 <template>
   <div>
+    <!-- 回复的原始消息 -->
+    <div v-if="isReply && parentPost" class="mb-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-blue-500">
+      <div class="flex items-center space-x-2 mb-2 text-xs text-gray-400">
+        <i class="fas fa-reply"></i>
+        <span>回复</span>
+      </div>
+
+      <div class="flex items-start space-x-2">
+        <!-- 父消息头像 -->
+        <img
+          v-if="parentPost.account?.avatar"
+          :src="parentPost.account.avatar"
+          class="w-6 h-6 rounded-full flex-shrink-0"
+          :alt="parentPost.account.displayName || parentPost.account.username"
+        />
+
+        <div class="flex-1 min-w-0">
+          <!-- 父消息作者 -->
+          <div class="flex items-center space-x-2 mb-1">
+            <span class="font-medium text-sm truncate">
+              {{ parentPost.account?.displayName || parentPost.account?.username || '未知用户' }}
+            </span>
+            <span class="text-xs text-gray-500 truncate">
+              @{{ parentPost.account?.acct || '' }}
+            </span>
+            <span class="text-xs text-gray-500">·</span>
+            <span class="text-xs text-gray-500 flex-shrink-0">
+              {{ formatTimeAgo(parentPost.createdAt) }}
+            </span>
+          </div>
+
+          <!-- 父消息内容（截断显示） -->
+          <div class="text-sm text-gray-300 line-clamp-3" v-html="parentPost.content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 加载父消息中 -->
+    <div v-else-if="isReply && loadingParent" class="mb-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-blue-500">
+      <div class="flex items-center space-x-2 text-xs text-gray-400">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>加载回复的消息...</span>
+      </div>
+    </div>
+
     <!-- 用户信息 -->
     <div class="flex items-center space-x-2 flex-wrap">
       <span class="font-bold truncate">
