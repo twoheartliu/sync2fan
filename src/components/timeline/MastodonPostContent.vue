@@ -33,6 +33,30 @@ const replyToId = computed(() => {
   return safeGet(props.post, 'reblog.inReplyToId', safeGet(props.post, 'inReplyToId', ''))
 })
 
+// 检查是否有引用消息
+const hasQuote = computed(() => {
+  const quotedStatus = safeGet(props.post, 'reblog.quote.quotedStatus', safeGet(props.post, 'quote.quotedStatus'))
+  return !!quotedStatus
+})
+
+// 获取引用的消息
+const quotedPost = computed(() => {
+  return safeGet(props.post, 'reblog.quote.quotedStatus', safeGet(props.post, 'quote.quotedStatus', null))
+})
+
+// 获取当前帖子的内容（移除引用的内联标记）
+const currentPostContent = computed(() => {
+  const content = safeGet(props.post, 'reblog.content', safeGet(props.post, 'content', ''))
+
+  // 如果有引用，移除 <p class="quote-inline">...</p> 部分
+  if (hasQuote.value) {
+    // 使用正则表达式移除 quote-inline 段落
+    return content.replace(/<p class="quote-inline">.*?<\/p>/i, '').trim()
+  }
+
+  return content
+})
+
 // 处理图片预览
 const handlePreviewImage = (imageUrl) => {
   emit('preview-image', imageUrl)
@@ -204,7 +228,7 @@ onMounted(() => {
     <div class="mt-2 text-sm md:text-base"
       v-show="!safeGet(post, 'reblog.spoilerText', safeGet(post, 'spoilerText')) || showSpoilerContent">
       <!-- Mastodon 内容 - 需要处理HTML -->
-      <div v-html="safeGet(post, 'reblog.content', safeGet(post, 'content', ''))"></div>
+      <div v-html="currentPostContent"></div>
 
       <!-- 媒体附件 -->
       <MediaAttachment :media="getMediaAttachments(post)" @preview-image="handlePreviewImage" />
@@ -261,6 +285,57 @@ onMounted(() => {
             ({{ formatTimeAgo(safeGet(post, 'reblog.poll.expiresAt', safeGet(post, 'poll.expiresAt', '')))
             }}结束)
           </span>
+        </div>
+      </div>
+
+      <!-- 引用消息 -->
+      <div v-if="hasQuote && quotedPost" class="mt-3 p-3 bg-gray-800 bg-opacity-50 rounded-lg border-l-2 border-green-500">
+        <div class="flex items-center space-x-2 mb-2 text-xs text-gray-400">
+          <i class="fas fa-quote-left"></i>
+          <span>引用</span>
+        </div>
+
+        <div class="flex items-start space-x-2">
+          <!-- 引用消息头像 -->
+          <img
+            v-if="quotedPost.account?.avatar"
+            :src="quotedPost.account.avatar"
+            class="w-6 h-6 rounded-full flex-shrink-0"
+            :alt="quotedPost.account.displayName || quotedPost.account.username"
+          />
+
+          <div class="flex-1 min-w-0">
+            <!-- 引用消息作者 -->
+            <div class="flex items-center space-x-2 mb-1">
+              <span class="font-medium text-sm truncate">
+                {{ quotedPost.account?.displayName || quotedPost.account?.username || '未知用户' }}
+              </span>
+              <span class="text-xs text-gray-500 truncate">
+                @{{ quotedPost.account?.acct || '' }}
+              </span>
+              <span class="text-xs text-gray-500">·</span>
+              <span class="text-xs text-gray-500 flex-shrink-0">
+                {{ formatTimeAgo(quotedPost.createdAt) }}
+              </span>
+            </div>
+
+            <!-- 引用消息内容 -->
+            <div class="text-sm text-gray-300" v-html="quotedPost.content"></div>
+
+            <!-- 引用消息的媒体附件（如果有） -->
+            <div v-if="quotedPost.mediaAttachments && quotedPost.mediaAttachments.length > 0" class="mt-2">
+              <div class="grid grid-cols-2 gap-2">
+                <img
+                  v-for="media in quotedPost.mediaAttachments.slice(0, 4)"
+                  :key="media.id"
+                  :src="media.previewUrl || media.url"
+                  class="rounded w-full h-24 object-cover cursor-pointer"
+                  :alt="media.description || ''"
+                  @click="handlePreviewImage(media.url)"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
