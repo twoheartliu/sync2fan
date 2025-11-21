@@ -4,8 +4,6 @@
   "description": "联通长毛象 NOFAN 实例和饭否的应用",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#1f2937",
-  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "icons": [
     {
